@@ -3,7 +3,8 @@
 ## Notes: Per-boss raid mechanic alerts for the full Midnight raid lineup. Kick + dispel + tank swap + soak alerts via ETEA. L'ura memory game. Focus kick bar. Marker-driven priority filtering. /vrt edit to position frames. |cffffd700REQUIRED COMPANION:|r install VoidRaidToolsReader alongside this addon so cross-class alert data flows correctly.
 ## Author: Vede
 ## Version: 1.0.2
-## SavedVariables: VoidRaidToolsDB
+## SavedVariables: VoidRaidToolsDB, VoidHubCharDB
+## SavedVariablesPerCharacter: VoidRaidToolsCharDB
 ## DefaultState: enabled
 ## IconTexture: Interface\Icons\spell_arcane_arcane01
 
@@ -35,8 +36,12 @@ Modules\MarkerScan.lua
 Modules\MarkerKickAlert.lua
 Modules\MarkerOverlay.lua
 
-# Panel: minimap icon + master panel UI. Loads last so all modules are registered.
+# Panel: master panel UI. Loads after all modules are registered.
 Panel.lua
+
+# Minimap button + shared VoidHub icon cluster (drop-in, identical across Void* addons).
+Minimap.lua
+VoidHubBundle.lua
 
 # Note: Bindings.xml is NOT listed here. Blizzard auto-discovers it by
 # filename and processes it through the Bindings schema. Including it
