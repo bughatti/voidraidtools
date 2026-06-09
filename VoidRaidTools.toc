@@ -1,0 +1,45 @@
+## Interface: 120005
+## Title: |cff00c7ffVoidRaidTools|r
+## Notes: Per-boss raid mechanic alerts for the full Midnight raid lineup. Kick + dispel + tank swap + soak alerts via ETEA. L'ura memory game. Focus kick bar. Marker-driven priority filtering. /vrt edit to position frames. |cffffd700REQUIRED COMPANION:|r install VoidRaidToolsReader alongside this addon so cross-class alert data flows correctly.
+## Author: Vede
+## Version: 1.0.2
+## SavedVariables: VoidRaidToolsDB
+## DefaultState: enabled
+## IconTexture: Interface\Icons\spell_arcane_arcane01
+
+# Core: module registry, event dispatch, slash command router.
+Core.lua
+
+# Modules (one file per boss mechanic; each self-registers in Core's registry).
+# Engine loads FIRST so per-boss alert modules can call VRT.BossAlertEngine:Attach.
+Modules\BossAlertEngine.lua
+Modules\LuraMemory.lua
+Modules\LightblindedTanks.lua
+Modules\VorasiusTanks.lua
+Modules\StackTankSwap.lua
+Modules\VaelgorEzzorakTanks.lua
+Modules\Salhadaar.lua
+Modules\Vorasius.lua
+Modules\Lightblinded.lua
+Modules\VaelgorEzzorak.lua
+Modules\ImperatorAverzian.lua
+Modules\CrownOfCosmos.lua
+Modules\Chimaerus.lua
+Modules\Beloren.lua
+Modules\MidnightFalls.lua
+Modules\TankSwapDiagnostic.lua
+Modules\ClassSequences.lua
+Modules\KickRotation.lua
+Modules\FocusKickBar.lua
+Modules\MarkerScan.lua
+Modules\MarkerKickAlert.lua
+Modules\MarkerOverlay.lua
+
+# Panel: minimap icon + master panel UI. Loads last so all modules are registered.
+Panel.lua
+
+# Note: Bindings.xml is NOT listed here. Blizzard auto-discovers it by
+# filename and processes it through the Bindings schema. Including it
+# in the toc routes it through the generic UI XML parser instead, which
+# rejects every <Binding> attribute. See
+# [[wow-bindings-xml-crlf-required]] memory note.
