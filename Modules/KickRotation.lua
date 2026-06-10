@@ -822,6 +822,15 @@ end
 function M:UpdateInstanceVisibility()
     if not self.state.floating_frame then return end
     if not IsInInstance then return end
+    -- User dismissed it via the panel's "Hide Kick Frame" button. Respect
+    -- that across /reload, ENCOUNTER_START, and zone changes until they
+    -- explicitly click "Show Kick Frame" again. Otherwise the box came
+    -- back every time someone /reloaded mid-key.
+    local s = VRT and VRT.ModuleSettings and VRT:ModuleSettings(M.id) or {}
+    if s.user_hidden then
+        self.state.floating_frame:Hide()
+        return
+    end
     local inInstance, instType = IsInInstance()
     if inInstance and (instType == "party" or instType == "raid") then
         self.state.floating_frame:Show()
@@ -892,9 +901,13 @@ function M:OnInit()
 end
 
 function M:OnEncounterStart(eid)
-    -- Make sure frame is showing for boss pulls too (in case visibility
-    -- check missed; e.g. user manually hid it earlier in the dungeon)
-    if M.state.floating_frame then M.state.floating_frame:Show() end
+    -- Force-show on boss pull UNLESS the user has explicitly hidden
+    -- the frame for this character. Without the check the box would
+    -- pop back up on every pull after the user dismissed it.
+    local s = VRT and VRT.ModuleSettings and VRT:ModuleSettings(M.id) or {}
+    if M.state.floating_frame and not s.user_hidden then
+        M.state.floating_frame:Show()
+    end
     DetectGroup()
     RenderFrame()
 end
@@ -908,12 +921,16 @@ end
 ----------------------------------------------------------------------
 M.actions = {
     { label = "Show Kick Frame", action = function()
+        local s = VRT and VRT.ModuleSettings and VRT:ModuleSettings(M.id) or {}
+        s.user_hidden = nil  -- clear the persistent dismiss
         if not M.state.floating_frame then BuildFrame() end
         if M.state.floating_frame then M.state.floating_frame:Show() end
         DetectGroup()
         RenderFrame()
     end },
     { label = "Hide Kick Frame", action = function()
+        local s = VRT and VRT.ModuleSettings and VRT:ModuleSettings(M.id) or {}
+        s.user_hidden = true  -- persist across /reload, ENCOUNTER_START, zone change
         if M.state.floating_frame then M.state.floating_frame:Hide() end
     end },
     { label = "Re-detect Group", action = function()

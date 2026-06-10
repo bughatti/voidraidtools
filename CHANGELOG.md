@@ -1,5 +1,10 @@
 # VoidRaidTools Changelog
 
+## 1.0.4 — 2026-06-10
+
+### Fixed
+- **Kick Rotation "Hide Kick Frame" now sticks across /reload, zone change, and ENCOUNTER_START.** Previously the panel button hid the frame for the current session only — any reload or boss pull silently re-showed it. Now persisted as `settings.kickrotation.user_hidden` in `VoidRaidToolsDB`. Click "Show Kick Frame" to bring it back.
+
 ## 1.0.3 — 2026-06-10
 
 ### Fixed
