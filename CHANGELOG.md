@@ -1,5 +1,13 @@
 # VoidRaidTools Changelog
 
+## 1.0.3 — 2026-06-10
+
+### Fixed
+- **TankSwapDiagnostic** ring buffer no longer O(n²). The naive `while #t > cap do table.remove(t, 1) end` pattern was tripping WoW's script-time-limit watchdog during sustained 20-man raid pulls (~50+ events/sec). Replaced with a single O(n) bulk drop of the oldest 10% so the next 10% of appends are free.
+
+### Cleanup
+- **Panel.lua**: removed dead legacy `VRT_MinimapButton` block — it was duplicating with `Minimap.lua`'s hub-discoverable `VoidRaidToolsMinimapBtn`. No user-facing change; the hub button is the only minimap UI now.
+
 ## 1.0.2 — 2026-06-09 (pre-raid push)
 
 ### Fixed

@@ -77,7 +77,15 @@ end
 
 local function PushCapped(tbl, entry, cap)
     table.insert(tbl, entry)
-    while #tbl > cap do table.remove(tbl, 1) end
+    -- O(n) bulk drop instead of O(n²) repeated table.remove(t, 1).
+    -- The naive form trips WoW's script-time-limit watchdog in busy fights.
+    local n = #tbl
+    if n > cap then
+        local drop = math.max(1, math.floor(cap * 0.1))
+        local m = n - drop
+        for i = 1, m do tbl[i] = tbl[i + drop] end
+        for i = m + 1, n do tbl[i] = nil end
+    end
 end
 
 local function SafeReadField(t, field)

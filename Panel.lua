@@ -274,85 +274,13 @@ function VRT:TogglePanel()
 end
 
 ----------------------------------------------------------------------
--- Minimap icon — standardized per [[void-addons-architecture]]
+-- Minimap icon — moved to Minimap.lua, which creates
+-- VoidRaidToolsMinimapBtn (the name VoidHubBundle discovers). The old
+-- VRT_MinimapButton this file used to create lived outside the hub
+-- cluster, causing a duplicate icon. No-op stub kept so the boot block
+-- below can keep calling CreateMinimapButton without crashing.
 ----------------------------------------------------------------------
-local minimap_btn
-
-local function PositionMinimapButton(btn)
-    VoidRaidToolsDB = VoidRaidToolsDB or {}
-    local angle_deg = VoidRaidToolsDB.minimapAngle or 215
-    local angle = math.rad(angle_deg)
-    local radius = (Minimap:GetWidth() / 2) + 6
-    local x = radius * math.cos(angle)
-    local y = radius * math.sin(angle)
-    btn:ClearAllPoints()
-    btn:SetPoint("CENTER", Minimap, "CENTER", x, y)
-end
-
-local function CreateMinimapButton()
-    if minimap_btn then return minimap_btn end
-
-    local btn = CreateFrame("Button", "VRT_MinimapButton", Minimap)
-    btn:SetSize(28, 28)
-    btn:SetFrameStrata("MEDIUM")
-    btn:SetFrameLevel((Minimap:GetFrameLevel() or 1) + 10)
-
-    local icon = btn:CreateTexture(nil, "BACKGROUND")
-    icon:SetSize(20, 20)
-    icon:SetPoint("CENTER", 0, 0)
-    icon:SetTexture("Interface\\Icons\\Spell_Arcane_Arcane01")
-    icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-
-    local border = btn:CreateTexture(nil, "OVERLAY")
-    border:SetSize(54, 54)
-    border:SetPoint("TOPLEFT", -2, 2)
-    border:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
-
-    btn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    btn:SetScript("OnClick", function(_, button)
-        if button == "RightButton" then
-            VRT:ToggleEditMode()
-        else
-            VRT:TogglePanel()
-        end
-    end)
-
-    btn:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-        GameTooltip:SetText("|cff00c7ffVoidRaidTools|r")
-        GameTooltip:AddLine("|cffffffffLeft-click:|r open panel", 0.9, 0.9, 0.9)
-        GameTooltip:AddLine("|cffffffffRight-click:|r Edit Mode", 0.9, 0.9, 0.9)
-        GameTooltip:AddLine("|cffffffffDrag:|r reposition", 0.9, 0.9, 0.9)
-        GameTooltip:Show()
-    end)
-    btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
-
-    -- Drag-to-orbit (around minimap)
-    btn:SetMovable(true)
-    btn:RegisterForDrag("LeftButton")
-    btn:SetScript("OnDragStart", function(self)
-        if IsShiftKeyDown() then
-            self.dragging = true
-            self:SetScript("OnUpdate", function(s)
-                local mx, my = Minimap:GetCenter()
-                local px, py = GetCursorPosition()
-                local scale = Minimap:GetEffectiveScale()
-                px, py = px / scale, py / scale
-                local angle_rad = math.atan2(py - my, px - mx)
-                VoidRaidToolsDB.minimapAngle = math.deg(angle_rad)
-                PositionMinimapButton(s)
-            end)
-        end
-    end)
-    btn:SetScript("OnDragStop", function(self)
-        self:SetScript("OnUpdate", nil)
-        self.dragging = false
-    end)
-
-    PositionMinimapButton(btn)
-    minimap_btn = btn
-    return btn
-end
+local function CreateMinimapButton() end
 
 ----------------------------------------------------------------------
 -- Slash + boot
