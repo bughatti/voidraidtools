@@ -99,7 +99,49 @@ end
 function VRT:SetModuleEnabled(id, on)
     VoidRaidToolsDB = VoidRaidToolsDB or {}
     VoidRaidToolsDB.modules = VoidRaidToolsDB.modules or {}
+    local was_on = VoidRaidToolsDB.modules[id]
+    if was_on == nil then was_on = true end  -- default on
     VoidRaidToolsDB.modules[id] = on and true or false
+    if was_on == (on and true or false) then return end  -- no change
+
+    -- Auto-hide every registered movable frame whose id matches this
+    -- module's id (either exact, or as a `<mod_id>.<subid>` prefix).
+    -- Modules register their draggable frames here so /vrt edit can find
+    -- them; reusing the registry means we don't have to touch every
+    -- module to wire up the toggle.
+    local prefix = id .. "."
+    for _, mv in ipairs(self.movables or {}) do
+        if mv.id == id or (mv.id and mv.id:sub(1, #prefix) == prefix) then
+            if mv.frame then
+                if on then
+                    -- Defer "should this be visible?" to the module — context
+                    -- matters (in-instance check, user_hidden flag, etc.).
+                    -- If the module didn't define OnEnable we just Show().
+                    -- Modules that need conditional show implement OnEnable.
+                else
+                    mv.frame:Hide()
+                end
+            end
+        end
+    end
+
+    -- Notify the module so it can run custom show/hide logic too.
+    -- Modules opt in by defining OnDisable / OnEnable.
+    local mod = self.modules and self.modules[id]
+    if mod then
+        if on and type(mod.OnEnable) == "function" then
+            pcall(mod.OnEnable, mod)
+        elseif not on and type(mod.OnDisable) == "function" then
+            pcall(mod.OnDisable, mod)
+        elseif on then
+            -- Default re-enable: show all registered movables for the module.
+            for _, mv in ipairs(self.movables or {}) do
+                if mv.frame and (mv.id == id or (mv.id and mv.id:sub(1, #prefix) == prefix)) then
+                    mv.frame:Show()
+                end
+            end
+        end
+    end
 end
 
 ----------------------------------------------------------------------

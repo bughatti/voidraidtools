@@ -912,6 +912,21 @@ function M:OnEncounterStart(eid)
     RenderFrame()
 end
 
+-- Lifecycle: VRT:SetModuleEnabled(M.id, false) calls this. We hide the
+-- floating frame so flipping the panel checkbox takes effect immediately
+-- instead of requiring a /reload.
+function M:OnDisable()
+    if M.state.floating_frame then M.state.floating_frame:Hide() end
+end
+
+-- Symmetric: re-enabling brings the frame back according to the normal
+-- visibility rules (in-instance + not user_hidden).
+function M:OnEnable()
+    if M.state.floating_frame then
+        M:UpdateInstanceVisibility()
+    end
+end
+
 function M:OnEncounterEnd(eid)
     -- Stay visible for trash too; only hide on explicit user action
 end

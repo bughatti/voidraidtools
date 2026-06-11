@@ -1,5 +1,11 @@
 # VoidRaidTools Changelog
 
+## 1.0.5 — 2026-06-10
+
+### Fixed
+- **Panel enable/disable checkboxes now take effect immediately for every module.** Previously the checkbox just flipped the persistent `VoidRaidToolsDB.modules[id]` flag, which gated future event dispatches but did nothing to the visible UI the module had already created. Result: unchecking Kick Rotation (or any other module with a visible frame) kept the box on-screen until `/reload`. Now `VRT:SetModuleEnabled` hides every registered movable that belongs to the toggled module, and fires `OnDisable`/`OnEnable` lifecycle callbacks for any module that wants custom logic. Works for all 13 modules with visible frames without touching their files individually — frames are matched via the existing `VRT.movables` registry (id is `<module_id>` or `<module_id>.<subid>`).
+- **Kick Rotation** specifically: implements `OnDisable` (hides the floating frame) and `OnEnable` (re-runs visibility check). So unchecking the box hides the rotation immediately, re-checking brings it back if you're in a dungeon and haven't separately user-hidden it.
+
 ## 1.0.4 — 2026-06-10
 
 ### Fixed
