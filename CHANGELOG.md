@@ -1,5 +1,11 @@
 # VoidRaidTools Changelog
 
+## 1.0.8 — 2026-06-10
+
+### Fixed
+- **Enable All no longer dumps every module's frame onto your screen.** The previous default-on-enable fallback called `:Show()` on every registered movable, so clicking Enable All while not in combat painted the screen with test popups (TAUNT routers, kick rotation board, etc.) that refused to stay hidden until /reload. Now SetModuleEnabled only fires OnEnable for modules that opt in (KickRotation runs `UpdateInstanceVisibility`, others stay silent until their actual trigger fires).
+- **Panel row overlap (round two).** The GetStringHeight() approach in 1.0.7 didn't work because the FontString hasn't actually been rendered yet at the point we measured — value comes back as the single-line height. Replaced with a string-length estimate: `ceil(description_length / 55 chars) * 12 px per line + 6 padding`. Conservative; consistent across reload.
+
 ## 1.0.7 — 2026-06-10
 
 ### Fixed

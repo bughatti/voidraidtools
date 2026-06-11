@@ -127,19 +127,24 @@ function VRT:SetModuleEnabled(id, on)
 
     -- Notify the module so it can run custom show/hide logic too.
     -- Modules opt in by defining OnDisable / OnEnable.
+    --
+    -- IMPORTANT: when ENABLING a module we do NOT auto-show its frames.
+    -- Most module frames are popups that should only appear when a
+    -- specific trigger fires (boss cast, debuff stack threshold, tank
+    -- swap broadcast, etc.). The previous default of "show all movables
+    -- on enable" turned the Enable All button into a screen full of
+    -- popups even outside combat.
+    --
+    -- Modules that want a frame visible immediately on enable (e.g.
+    -- KickRotation when you're in an instance) implement OnEnable
+    -- themselves and decide their own show logic. Modules without an
+    -- OnEnable stay silent until their normal trigger fires.
     local mod = self.modules and self.modules[id]
     if mod then
         if on and type(mod.OnEnable) == "function" then
             pcall(mod.OnEnable, mod)
         elseif not on and type(mod.OnDisable) == "function" then
             pcall(mod.OnDisable, mod)
-        elseif on then
-            -- Default re-enable: show all registered movables for the module.
-            for _, mv in ipairs(self.movables or {}) do
-                if mv.frame and (mv.id == id or (mv.id and mv.id:sub(1, #prefix) == prefix)) then
-                    mv.frame:Show()
-                end
-            end
         end
     end
 end

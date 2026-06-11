@@ -246,17 +246,21 @@ local function BuildModuleRow(content, mod, y_cursor)
 
     -- Compute row height.
     --
-    -- The old version hard-coded `+14` for the description, which assumed
-    -- a single line of text. With the rewritten "vs DBM" descriptions
-    -- (often 2-4 wrapped lines), that under-counted the row height and
-    -- the next row's name + action buttons rendered on top of the prior
-    -- module's description. GetStringHeight() returns the actual wrapped
-    -- rendered height once SetText + SetPoint have set the wrap width.
+    -- The naive GetStringHeight() approach didn't work because the
+    -- FontString hasn't been rendered yet at this point (the row isn't
+    -- anchored to content until below), so the value comes back as either
+    -- 0 or the single-line height. Instead estimate wrap lines from the
+    -- string length divided by chars-per-line at the row's wrap width.
+    -- GameFontNormalSmall renders ~7.5px wide per char on average and the
+    -- row is PANEL_WIDTH - 60 wide minus the checkbox indent (~22 + 4) =
+    -- effective text width ~414px → ~55 chars per line. Conservative.
     local row_h = ROW_HEIGHT_BASE
     if desc then
-        local desc_h = desc:GetStringHeight() or 14
-        if desc_h < 14 then desc_h = 14 end  -- floor for safety
-        row_h = row_h + desc_h + 4
+        local CHARS_PER_LINE = 55
+        local LINE_HEIGHT    = 12
+        local nlines = math.ceil(#mod.description / CHARS_PER_LINE)
+        if nlines < 1 then nlines = 1 end
+        row_h = row_h + (nlines * LINE_HEIGHT) + 6
     end
     row_h = row_h + (row_count * (ACTION_BUTTON_H + 4))
     row:SetHeight(row_h)
