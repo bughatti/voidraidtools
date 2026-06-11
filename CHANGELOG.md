@@ -1,5 +1,10 @@
 # VoidRaidTools Changelog
 
+## 1.0.7 — 2026-06-10
+
+### Fixed
+- **Panel rows overlapped when descriptions wrapped to multiple lines.** Row height was hard-coded to `+14px` for the description, assuming a single line. The rewritten "vs DBM" descriptions in 1.0.6 are 2-4 lines and exceeded that budget — KickRotation's action buttons rendered on top of LuraMemory's title, etc. Now uses `desc:GetStringHeight()` to measure the actual wrapped rendered height.
+
 ## 1.0.6 — 2026-06-10
 
 ### Added

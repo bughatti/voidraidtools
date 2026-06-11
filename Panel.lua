@@ -244,9 +244,20 @@ local function BuildModuleRow(content, mod, y_cursor)
         row_count = row_count + 1
     end
 
-    -- Compute row height
+    -- Compute row height.
+    --
+    -- The old version hard-coded `+14` for the description, which assumed
+    -- a single line of text. With the rewritten "vs DBM" descriptions
+    -- (often 2-4 wrapped lines), that under-counted the row height and
+    -- the next row's name + action buttons rendered on top of the prior
+    -- module's description. GetStringHeight() returns the actual wrapped
+    -- rendered height once SetText + SetPoint have set the wrap width.
     local row_h = ROW_HEIGHT_BASE
-    if desc then row_h = row_h + 14 end
+    if desc then
+        local desc_h = desc:GetStringHeight() or 14
+        if desc_h < 14 then desc_h = 14 end  -- floor for safety
+        row_h = row_h + desc_h + 4
+    end
     row_h = row_h + (row_count * (ACTION_BUTTON_H + 4))
     row:SetHeight(row_h)
     row:SetPoint("TOPLEFT", 0, y_cursor)
