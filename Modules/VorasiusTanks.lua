@@ -41,7 +41,7 @@ M.id             = "vorasius"
 M.name           = "Vorasius — Tank Router"
 M.encounter_id   = 3177
 M.encounter_name = "Vorasius"
-M.description    = "Routes Smashing Frenzy (1241836) cycle swaps. T1 takes 2, T2 takes 4 per 6-cast cycle. Heroic+ only."
+M.description    = "Vorasius — Smashing Frenzy cycle router. Tracks the 6-cast cycle and pops a one-click TAUNT button at the right beat (T1 takes 2 casts, T2 takes 4). No spreadsheet, no counting. Heroic+ only."
 
 ----------------------------------------------------------------------
 -- Constants

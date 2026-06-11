@@ -10,7 +10,7 @@
 local M = {
     id   = "crown_alerts",
     name = "Crown of the Cosmos — Alerts",
-    description = "Kicks, dispels, tank, externals for Alleria + adds.",
+    description = "Role-filtered alerts for Crown of the Cosmos (Alleria phase): DPS get add kicks + Aspect-of-the-End tethers, healers get dispels, tanks get external requests.",
     state = { active = false },
 }
 

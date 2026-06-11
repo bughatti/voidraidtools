@@ -12,7 +12,7 @@
 local M = {
     id   = "averzian_alerts",
     name = "Imperator Averzian — Alerts",
-    description = "Kicks, dispels, soak alerts.",
+    description = "Role-filtered alerts for Imperator Averzian: DPS get add-cast kicks, healers get Void Marked dispels (Mythic), everyone gets soak warnings. Pairs with StackTankSwap for the Blackening Wounds swap.",
     state = { active = false },
 }
 

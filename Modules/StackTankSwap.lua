@@ -50,7 +50,7 @@ local M = {
 M.id             = "stacktankswap"
 M.name           = "Imperator + Salhadaar — Stack Watcher"
 M.encounter_name = "Imperator Averzian / Fallen-King Salhadaar"
-M.description    = "Covers TWO bosses: Imperator Averzian (Blackening Wounds at 8+) and Fallen-King Salhadaar (Destabilizing Strikes at 8+). Auto-detects your own stacks; broadcasts SWAPREQUEST when threshold hit."
+M.description    = "Tracks Blackening Wounds (Imperator Averzian) and Destabilizing Strikes (Salhadaar) stack counts on YOUR character. When you hit 8 stacks, broadcasts a SWAPREQUEST over the addon channel and your co-tank's screen pops a one-click TAUNT button. DBM announces stacks; this routes the actual swap to the right tank."
 
 ----------------------------------------------------------------------
 -- Per-encounter configuration

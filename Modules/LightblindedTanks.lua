@@ -83,7 +83,7 @@ M.id             = "lightblinded"
 M.name           = "Lightblinded Vanguard — Tank Router"
 M.encounter_id   = 3180
 M.encounter_name = "Lightblinded Vanguard"
-M.description    = "Routes Bellamy/Venel Judgments to the correct tank with one-click TAUNT buttons. Heroic+ only."
+M.description    = "Lightblinded Vanguard — one-click TAUNT popup. Addon decides which tank (you or co-tank) should be on Bellamy vs Venel based on Judgment debuff stacks, you just click. DBM says 'swap', this picks WHO and gives you the button. Heroic+ only."
 
 ----------------------------------------------------------------------
 -- Constants

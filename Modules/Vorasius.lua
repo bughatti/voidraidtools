@@ -12,7 +12,7 @@
 local M = {
     id   = "vorasius_alerts",
     name = "Vorasius — Kick + Utility Alerts",
-    description = "Add-kick + raid-utility alerts. Tank swap is in VorasiusTanks.",
+    description = "Role-filtered alerts for Vorasius: DPS get add-kicks, healers get dispels. The Smashing Frenzy tank cycle is in VorasiusTanks.",
     state = { active = false },
 }
 

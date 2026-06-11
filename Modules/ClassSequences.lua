@@ -35,7 +35,7 @@ local M = {
 
 M.id          = "classsequences"
 M.name        = "Class Sequences"
-M.description = "Pre-built encounter macros (e.g. Chimaerus DK Grip/Grip/Kick on Haunting Essence). Auto-targeting via PreClick; bind to VOIDRAIDTOOLS_SEQUENCE key."
+M.description = "Death Knight only — Grip / Grip / Kick castsequence popup for Chimaerus Haunting Essences. One keybind launches the 3-step sequence and auto-targets the next un-gripped add each press. DBM announces the cast; this DOES it."
 
 ----------------------------------------------------------------------
 -- Constants

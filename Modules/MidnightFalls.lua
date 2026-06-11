@@ -9,7 +9,7 @@
 local M = {
     id   = "midnightfalls_alerts",
     name = "Midnight Falls — Kick + Utility",
-    description = "Safeguard Prism kicks + raid alerts. Dark Rune memory is in LuraMemory.",
+    description = "Role-filtered alerts for Midnight Falls (L'ura): DPS get Safeguard Prism kicks + Galvanize beam dodges, healers get dispels, tanks get swaps. The Dark Rune memory game UI is in LuraMemory.",
     state = { active = false },
 }
 

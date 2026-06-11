@@ -27,7 +27,7 @@
 local M = {
     id   = "markerscan",
     name = "Marker Scan",
-    description = "One key — auto-marks priority kick/dispel/CC mobs in the current dungeon.",
+    description = "One keybind — auto-marks priority kick / dispel / CC mobs in the current dungeon based on a curated list per dungeon. Saves the leader from manually assigning markers each pull. Runs silently (no popup or sound).",
 }
 
 ----------------------------------------------------------------------

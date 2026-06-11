@@ -1,5 +1,13 @@
 # VoidRaidTools Changelog
 
+## 1.0.6 — 2026-06-10
+
+### Added
+- **Enable All / Disable All** bulk-toggle buttons in the panel's bottom bar. Start clean (Disable All) and re-enable only the modules you want — useful for tanks who only want LuraMemory + tank-swap modules, or DPS who only want KickRotation + per-boss alerts.
+
+### Changed
+- **Every module description rewritten** to explain what each module does on-screen AND how it complements (not duplicates) DBM. Common feedback was "I have DBM, why do I need VRT?" — the new descriptions answer that per module. KickRotation tells you whose kick to use (DBM only announces the cast). LightblindedTanks picks WHICH tank should swap and gives you the button (DBM only says "swap"). LuraMemory shows YOUR personal pattern + arrow (DBM has no per-player memory tracking). Per-boss alert modules emphasize role-filtering (DPS see kicks, healers see dispels, tanks see swaps) vs DBM's everyone-gets-everything model.
+
 ## 1.0.5 — 2026-06-10
 
 ### Fixed

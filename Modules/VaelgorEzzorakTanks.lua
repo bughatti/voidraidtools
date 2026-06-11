@@ -46,7 +46,7 @@ M.id             = "vaelgor"
 M.name           = "Vaelgor & Ezzorak — Tank Router"
 M.encounter_id   = 3178
 M.encounter_name = "Vaelgor & Ezzorak"
-M.description    = "Routes tank swaps after each Midnight Flames intermission. Tanks swap dragons on landing. Heroic only."
+M.description    = "Vaelgor & Ezzorak — one-click TAUNT popup after each Midnight Flames intermission. Picks which dragon you should swap to on landing based on roster + previous swap. DBM says 'swap', this picks the dragon. Heroic+ only."
 
 ----------------------------------------------------------------------
 -- Constants

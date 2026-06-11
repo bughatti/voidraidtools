@@ -30,7 +30,7 @@ local M = {
 
 M.id          = "diagnostic"
 M.name        = "Tank Swap Diagnostic"
-M.description = "Logs ETEA / aura / encounter events to SavedVariables so we can validate the architecture without needing a Voidspire pull. Run any content; review captures later."
+M.description = "DEBUG TOOL — records ETEA / aura / encounter events to SavedVariables for post-pull analysis. Leave OFF for normal play. Turn on only if you're asked to capture data for a bug report."
 -- Intentionally NO encounter_id — Core dispatches OnEncounterStart to
 -- modules without an encounter_id for ALL encounters.
 

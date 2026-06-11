@@ -9,7 +9,7 @@
 local M = {
     id   = "chimaerus_alerts",
     name = "Chimaerus — Kick + Utility Alerts",
-    description = "Fearsome Cry kick + dispels + soaks. DK Grip sequence is in ClassSequences.",
+    description = "Role-filtered alerts for Chimaerus: DPS see Fearsome Cry kicks, healers see Consuming Miasma dispels, tanks see Caustic Phlegm external requests + Rift Madness on Mythic. DBM alerts everyone for everything — this filters by YOUR role so it's not noise.",
     state = { active = false },
 }
 

@@ -15,7 +15,7 @@
 local M = {
     id   = "vaelezz_alerts",
     name = "Vaelgor & Ezzorak — Kick + Utility",
-    description = "Priority alerts for Vaelgor & Ezzorak via ETEA.",
+    description = "Role-filtered alerts for Vaelgor & Ezzorak: DPS get kicks + Nullzone tether warnings, healers get fear dispels, everyone gets Midnight Flames intermission callouts. The tank-swap routing is in VaelgorEzzorakTanks.",
     state = { active = false },
 }
 

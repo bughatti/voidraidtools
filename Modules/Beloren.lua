@@ -9,7 +9,7 @@
 local M = {
     id   = "beloren_alerts",
     name = "Belo'ren — Alerts",
-    description = "Tank swap, color-soak warnings, external CDs.",
+    description = "Role-filtered alerts for Belo'ren: DPS see Radiant Echoes orb assignments + color soaks, healers see external-cooldown requests, tanks see swap calls. DBM announces 'soak' generically — this tells YOU which color/orb.",
     state = { active = false },
 }
 

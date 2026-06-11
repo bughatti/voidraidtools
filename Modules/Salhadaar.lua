@@ -19,7 +19,7 @@
 local M = {
     id   = "salhadaar",
     name = "Fallen-King Salhadaar",
-    description = "Priority alerts for Salhadaar via ETEA. Verified IDs override; everything else gates on C_Spell.IsSpellImportant.",
+    description = "Role-filtered alerts for Fallen-King Salhadaar: DPS get kicks + Void Convergence orb assignments, healers get dispels. The Cleave-stack tank swap is in StackTankSwap.",
     state = { active = false },
 }
 

@@ -30,7 +30,7 @@
 local M = {
     id   = "markerkickalert",
     name = "Marker Kick Alert",
-    description = "Alerts ONLY when a marked mob's cast survives past 2.7s (= confirmed important).",
+    description = "Critical kick alert that fires ONLY when a raid-marked mob (star, circle, etc.) starts an interruptible cast that survives past the 2.7s noise threshold (= confirmed important). Filters out DBM's everyone-gets-every-kickable-cast spam — only YOUR assigned target pings you.",
 }
 
 local BOLT_MAX_DURATION = 2.7        -- seconds — past this, it's not Bolt

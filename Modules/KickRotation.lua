@@ -51,7 +51,7 @@ local HELLO_STALE_AFTER  = 150  -- forget a peer if no HELLO in this many sec (2
 
 M.id          = "kickrotation"
 M.name        = "Kick Rotation"
-M.description = "Auto-detects group's interrupts, shows who's UP NEXT, syncs via broadcast. Phase 1: persistent rotation. Phase 2: cast-detection alerts."
+M.description = "Floating rotation board listing every kicker in your group, ordered by who's UP NEXT based on their actual CDs. When another VRT user fires an interrupt, your board updates over the addon channel. DBM announces incoming casts; this tells you WHOSE kick to use."
 
 ----------------------------------------------------------------------
 -- Interrupt + interrupt-equivalent CC database — 62 entries.

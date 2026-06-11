@@ -10,7 +10,7 @@
 local M = {
     id   = "lightblinded_alerts",
     name = "Lightblinded Vanguard — Kick + Utility Alerts",
-    description = "Kicks, soaks, externals. Tank swap is handled by LightblindedTanks.",
+    description = "Role-filtered alerts for Lightblinded Vanguard: DPS get kicks + soak assignments, healers get external-CD requests + Mass Dispel calls. Tank-swap routing is handled by LightblindedTanks.",
     state = { active = false },
 }
 

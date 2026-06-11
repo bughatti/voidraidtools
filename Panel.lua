@@ -93,20 +93,49 @@ local function CreatePanelFrame()
     scroll:SetScrollChild(content)
     panel.content = content
 
-    -- Bottom bar — Edit Mode + Reset Positions
+    -- Bottom bar — Edit Mode + Reset Positions + bulk enable/disable
     local editBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-    editBtn:SetSize(140, 26)
+    editBtn:SetSize(110, 26)
     editBtn:SetPoint("BOTTOMLEFT", 14, 14)
     editBtn:SetText("Edit Mode")
     editBtn:SetScript("OnClick", function() VRT:ToggleEditMode() end)
     panel.editBtn = editBtn
 
     local resetBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-    resetBtn:SetSize(160, 26)
-    resetBtn:SetPoint("LEFT", editBtn, "RIGHT", 8, 0)
+    resetBtn:SetSize(130, 26)
+    resetBtn:SetPoint("LEFT", editBtn, "RIGHT", 6, 0)
     resetBtn:SetText("Reset Positions")
     resetBtn:SetScript("OnClick", function() VRT:ResetAllPositions() end)
     panel.resetBtn = resetBtn
+
+    -- Bulk-toggle buttons: requested by users who want to start clean
+    -- and re-enable only the modules they want (e.g. a tank who wants
+    -- ONLY LuraMemory + tank-swap modules, ignoring kick/dispel alerts).
+    local enableAllBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    enableAllBtn:SetSize(90, 26)
+    enableAllBtn:SetPoint("LEFT", resetBtn, "RIGHT", 6, 0)
+    enableAllBtn:SetText("Enable All")
+    enableAllBtn:SetScript("OnClick", function()
+        for _, mod in pairs(VRT.modules or {}) do
+            VRT:SetModuleEnabled(mod.id, true)
+        end
+        VRT:Print("All modules enabled. Open the panel again to verify.")
+        VRT:RefreshPanel()
+    end)
+    panel.enableAllBtn = enableAllBtn
+
+    local disableAllBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    disableAllBtn:SetSize(95, 26)
+    disableAllBtn:SetPoint("LEFT", enableAllBtn, "RIGHT", 4, 0)
+    disableAllBtn:SetText("Disable All")
+    disableAllBtn:SetScript("OnClick", function()
+        for _, mod in pairs(VRT.modules or {}) do
+            VRT:SetModuleEnabled(mod.id, false)
+        end
+        VRT:Print("All modules disabled. Re-enable the ones you want from this panel.")
+        VRT:RefreshPanel()
+    end)
+    panel.disableAllBtn = disableAllBtn
 
     -- Slash hint (small, gray, not the primary path)
     local hint = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -268,6 +297,13 @@ function VRT:OpenPanel()
 end
 
 function VRT:ClosePanel() if panel then panel:Hide() end end
+
+-- Public refresh — used by bulk Enable All / Disable All so the panel's
+-- checkbox row state catches up to the new persistent flag immediately.
+function VRT:RefreshPanel()
+    if not panel then return end
+    RefreshPanel()
+end
 function VRT:TogglePanel()
     if panel and panel:IsShown() then panel:Hide()
     else self:OpenPanel() end

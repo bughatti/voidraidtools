@@ -24,7 +24,7 @@
 local M = {
     id   = "markeroverlay",
     name = "Marker Overlay",
-    description = "Big custom icon above any nameplate with a raid-target marker.",
+    description = "Adds a large custom icon above any nameplate with a raid-target marker (star, circle, etc.). Makes assigned kick / focus targets impossible to miss in a 20-man fight. DBM has no nameplate-marker overlay.",
 }
 
 -- Visual config (tweakable later)

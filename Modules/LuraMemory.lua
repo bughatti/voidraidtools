@@ -146,7 +146,7 @@ M.id             = "lura"
 M.name           = "L'ura Memory Game"
 M.encounter_id   = 3183
 M.encounter_name = "Midnight Falls (Heroic Midnight Falls)"
-M.description    = "Oracle calls flash order, addon tells each Dark Rune'd player which spot to run to."
+M.description    = "Interactive memory game UI for L'ura's Dark Rune phase. Each player with the rune sees their personal color/shape pattern on-screen and a directional arrow to their assigned spot. Group-coordinated via raid markers. DBM has no per-player memory tracking — everyone there gets the same generic 'remember the pattern' text."
 
 local OracleFrame, LegendFrame
 -- Local shadow of `PlayerFrame` so any stray reference in this module

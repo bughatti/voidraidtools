@@ -36,7 +36,7 @@
 local M = {
     id   = "focuskickbar",
     name = "Focus Kick Bar",
-    description = "Shows focus target's cast — auto-hides non-interruptible casts.",
+    description = "Dedicated cast bar for YOUR focus target only. Auto-hides when the current cast isn't interruptible. Unlike DBM's interrupt warnings (which fire for the whole raid for every kickable cast), this is just your focus and never gets drowned out by raid-wide noise.",
     state = {
         active_cast_kind = nil,  -- "cast" | "channel" | nil
         start_gt         = nil,  -- GetTime() at cast start
