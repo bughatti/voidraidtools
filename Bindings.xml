@@ -1,0 +1,8 @@
+<Bindings>
+	<Binding name="VOIDRAIDTOOLS_TAUNT" description="Click the currently visible VRT TAUNT popup" header="VOIDRAIDTOOLS_BINDING_HEADER" category="VoidRaidTools">
+		-- no-op; routed via SetOverrideBindingClick from Core.lua
+	</Binding>
+	<Binding name="VOIDRAIDTOOLS_SEQUENCE" description="Click the currently visible Class Sequence popup (e.g. Chim DK Grip/Grip/Kick)" category="VoidRaidTools">
+		-- no-op; routed via SetOverrideBindingClick from Core.lua
+	</Binding>
+</Bindings>
