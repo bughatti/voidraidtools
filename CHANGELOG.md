@@ -1,5 +1,10 @@
 # VoidRaidTools Changelog
 
+## 1.0.10 — 2026-06-22
+
+### Changed
+- Quieter startup — removed the load-banner chat messages that printed on login.
+
 ## 1.0.9 — 2026-06-20
 
 ### Compatibility

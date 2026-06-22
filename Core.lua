@@ -570,8 +570,6 @@ frame:SetScript("OnEvent", function(_, event, a, b, c, d, e)
         end)
         local count = 0
         for _ in pairs(VRT.modules) do count = count + 1 end
-        VRT:Print(("v%s loaded — %d module%s. Type |cffffd700/vrt|r for commands."):format(
-            VRT.version, count, count == 1 and "" or "s"))
         -- Reader is the required companion that captures cross-class data
         -- so the alert engine sees casts from other classes' perspective.
         -- Nudge the user once at login if it's missing.
