@@ -1,8 +1,8 @@
 ## Interface: 120007
 ## Title: |cff00c7ffVoidRaidTools|r
-## Notes: Per-boss raid mechanic alerts for the full Midnight raid lineup. Kick + dispel + tank swap + soak alerts via ETEA. L'ura memory game. Focus kick bar. Marker-driven priority filtering. /vrt edit to position frames. |cffffd700REQUIRED COMPANION:|r install VoidRaidToolsReader alongside this addon so cross-class alert data flows correctly.
+## Notes: Per-boss raid mechanic alerts for the full Midnight raid lineup. Kick + dispel + tank swap + soak alerts via ETEA. L'ura memory game. Focus kick bar. Marker-driven priority filtering. /vrt edit to position frames. |cffffd700REQUIRED COMPANION:|r install VoidRaidToolsReader alongside this addon so cross-class alert data flows correctly. Discord: https://discord.gg/7ZHmx7zMDh
 ## Author: Vede
-## Version: 1.0.9
+## Version: 1.0.10
 ## SavedVariables: VoidRaidToolsDB, VoidHubCharDB
 ## SavedVariablesPerCharacter: VoidRaidToolsCharDB
 ## DefaultState: enabled
