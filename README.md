@@ -95,4 +95,4 @@ Contributing that data to the shared model is optional and uses a small separate
 
 ---
 
-*Requires VoidRaidToolsReader · VoidLib bundled · Apache 2.0 · by Vede ([voidscout.io](https://voidscout.io))*
+*Requires VoidRaidToolsReader · VoidLib bundled · MIT · by Vede ([voidscout.io](https://voidscout.io))*
