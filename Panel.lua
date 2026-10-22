@@ -50,6 +50,7 @@ local function CreatePanelFrame()
     if panel then return panel end
 
     panel = CreateFrame("Frame", "VRT_MasterPanel", UIParent, "BackdropTemplate")
+    tinsert(UISpecialFrames, "VRT_MasterPanel")   -- ESC closes it (no secure children)
     panel:SetSize(PANEL_WIDTH, 540)
     panel:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
     panel:SetFrameStrata("HIGH")

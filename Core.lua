@@ -38,7 +38,8 @@ local ADDON_PREFIX = "VRT"
 local SLASH_LONG   = "voidraidtools"
 
 VRT = VRT or {}
-VRT.version = "0.10.0"
+-- Read from the TOC so the panel header can't drift from the released version.
+VRT.version = (C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata("VoidRaidTools", "Version")) or "?"
 
 ----------------------------------------------------------------------
 -- Module registry
@@ -69,10 +70,26 @@ end
 ----------------------------------------------------------------------
 -- Addon message helpers (called by modules)
 ----------------------------------------------------------------------
+-- Pick the group channel that actually reaches everyone: LFG/LFR/follower groups are
+-- instance groups (INSTANCE_CHAT); premade raids/parties need RAID/PARTY — INSTANCE_CHAT
+-- fails there ("You aren't in an instance group"). nil when solo.
+function VRT:GroupChannel()
+    if IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then return "INSTANCE_CHAT" end
+    if IsInRaid() then return "RAID" end
+    if IsInGroup() then return "PARTY" end
+    return nil
+end
+
 function VRT:SendModuleMessage(module_id, kind, data, channel)
     if not (C_ChatInfo and C_ChatInfo.SendAddonMessage) then return end
+    -- Group channels are always auto-selected (callers historically hardcoded INSTANCE_CHAT,
+    -- which silently broke sync in premade groups). Explicit WHISPER etc. is respected.
+    if channel == nil or channel == "INSTANCE_CHAT" or channel == "RAID" or channel == "PARTY" then
+        channel = self:GroupChannel()
+    end
+    if not channel then return end
     local payload = ("%s|%s|%s"):format(module_id, kind, data or "")
-    C_ChatInfo.SendAddonMessage(ADDON_PREFIX, payload, channel or "INSTANCE_CHAT")
+    C_ChatInfo.SendAddonMessage(ADDON_PREFIX, payload, channel)
 end
 
 local function DispatchAddonMessage(prefix, payload, channel, sender)
@@ -226,11 +243,14 @@ VRT.movables = VRT.movables or {}
 local edit_mode_active = false
 local edit_overlays    = {}   -- spec.id → overlay button
 local edit_was_shown   = {}   -- spec.id → was the frame visible before edit?
+local edit_fanned      = {}   -- spec.id → original point, for frames fanned out in edit mode
+local edit_dragged     = {}   -- spec.id → true once dragged during this edit session
 local edit_panel              -- floating "Done" panel
 
 local function SavePositionFor(spec)
     local point, _, relPoint, x, y = spec.frame:GetPoint()
     if not point then return end
+    edit_dragged[spec.id] = true
     VoidRaidToolsDB.movables = VoidRaidToolsDB.movables or {}
     VoidRaidToolsDB.movables[spec.id] = {
         point = point, relPoint = relPoint, x = x, y = y,
@@ -348,6 +368,22 @@ function VRT:EnterEditMode()
     edit_mode_active = true
     BuildEditPanel()
     edit_panel:Show()
+    -- Frames pile up on top of each other (centered defaults AND overlapping saved
+    -- spots), so in edit mode lay EVERY frame out in a grid; ExitEditMode puts
+    -- back each one the player didn't drag this session.
+    local col, row = 0, 0
+    edit_fanned = {}
+    edit_dragged = {}
+    for _, spec in ipairs(self.movables) do
+        do
+            local p, rel, rp, x, y = spec.frame:GetPoint()
+            edit_fanned[spec.id] = { p, rel, rp, x, y }
+            spec.frame:ClearAllPoints()
+            spec.frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 40 + col * 330, -40 - row * 170)
+            col = col + 1
+            if col >= 4 then col = 0; row = row + 1 end
+        end
+    end
     for _, spec in ipairs(self.movables) do
         edit_was_shown[spec.id] = spec.frame:IsShown()
         spec.frame:Show()
@@ -373,11 +409,18 @@ function VRT:ExitEditMode()
     for _, spec in ipairs(self.movables) do
         local ov = edit_overlays[spec.id]
         if ov then ov:Hide() end
+        -- Fanned out for editing but not dragged: restore where it was.
+        local orig = edit_fanned[spec.id]
+        if orig and not edit_dragged[spec.id] and orig[1] then
+            spec.frame:ClearAllPoints()
+            spec.frame:SetPoint(orig[1], orig[2] or UIParent, orig[3] or orig[1], orig[4] or 0, orig[5] or 0)
+        end
         if edit_was_shown[spec.id] == false then
             spec.frame:Hide()
         end
     end
     edit_was_shown = {}
+    edit_fanned = {}
     VRT:Print("Edit Mode OFF — positions saved.")
 end
 

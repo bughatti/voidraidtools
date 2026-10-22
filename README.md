@@ -1,98 +1,94 @@
 # VoidRaidTools
 
-**Requires the companion addon [VoidRaidToolsReader](https://www.curseforge.com/wow/addons/voidraidtoolsreader).**
+**A complement to DBM and BigWigs — it handles the parts they leave to you.**
+
+DBM and BigWigs announce what the boss is about to do. VoidRaidTools doesn't repeat those alerts — it tells *you* what to do about them, and only the things you can actually act on: **DPS** see kicks and soak assignments, **healers** see dispels and external-cooldown requests, **tanks** see swap callouts with a one-click TAUNT button. It filters by your spec automatically — no setup.
+
+**Requires the free companion addon [VoidRaidToolsReader](https://www.curseforge.com/wow/addons/voidraidtoolsreader).**
 
 ---
 
-## VoidRaidTools is a complement to DBM/BigWigs, not a replacement.
-
-DBM and BigWigs already announce when a boss is about to cast something. **VoidRaidTools doesn't repeat their alerts** — it solves the things they leave to you.
-
-Every per-boss module ships with the same idea: **you should only be alerted for the things you can actually do**.
-
-- **DPS** see kicks + soak assignments
-- **Healers** see dispels + external-cooldown requests
-- **Tanks** see swap callouts + a one-click TAUNT button
-
-That filtering happens automatically based on your spec, no setup required.
-
----
-
-## What's actually different
+## Features
 
 ### Kick Rotation
-A floating board that lists every kicker in your group, ordered by who's **UP NEXT** based on actual cooldown tracking. When another VoidRaidTools user fires an interrupt, the board updates over the addon channel — so the whole group sees the same rotation in real-time.
+- A floating board of every kicker in your group, ordered by **who's up next** from real cooldown tracking
+- Syncs between VoidRaidTools users, so the whole group sees the same rotation live
 
-> *DBM announces "boss casting X" — you still have to remember whose Mind Freeze is up.*
-> *VoidRaidTools tells you whose kick is up.*
+> *DBM says "boss casting X" — you still have to remember whose Mind Freeze is up. VoidRaidTools tells you whose kick is up.*
 
-### Tank Swap Routers (Lightblinded, Vorasius, Vaelgor & Ezzorak, Imperator, Salhadaar)
-A one-click **TAUNT** popup that decides which tank should swap based on the actual fight state — debuff stacks, last swap, dragon assignments, whatever the boss needs.
+### Tank Swap Routers
+- A one-click **TAUNT** popup on the right tank's screen, decided from the actual fight state — debuff stacks, last swap, dragon assignments, whatever the boss needs
 
-> *DBM says "swap now" — you have to figure out who and target manually.*
-> *VoidRaidTools pops a button on the right tank's screen — click it.*
-
-### L'ura Memory Game (LuraMemory)
-The Dark Rune phase on Midnight Falls. Each player with the rune sees their **personal color/shape pattern** on screen plus a directional arrow to their assigned spot. Group-coordinated via raid markers.
-
-> *DBM has no per-player memory tracking. Everyone gets the same generic "remember the pattern" text.*
-
-### Class Sequences — DK Grip / Grip / Kick on Chimaerus
-A single keybind that launches a 3-step castsequence (Death Grip → Death Grip → Mind Freeze) and **auto-targets the next un-gripped Haunting Essence** each time you press it. Built specifically for the Chimaerus spirit-realm adds.
-
-> *DBM tells you to kick. VoidRaidTools kicks for you.*
-
-### Marker-Driven Kick Alert
-Critical alerts that fire **only when a raid-marked mob** starts an interruptible cast. Filters out the noise of DBM's "everyone gets every kickable cast" model — you only get pinged for your assigned target.
+> *DBM says "swap now" — you still have to work out who and target manually.*
 
 ### Focus Kick Bar
-Dedicated cast bar for **your focus target only**. Auto-hides on non-interruptible casts. Doesn't get drowned out by raid-wide spam.
+- A big cast bar for **your focus — or your target if you have no focus**: spell name, icon and time left, green when you can kick it, grey (dimmed) on casts you can't interrupt so you don't waste the kick
+
+### Marker Kick Alert
+- Alerts **only when a raid-marked mob** starts an interruptible cast — so you're pinged for your assigned target, not every kickable cast in the room
 
 ### Marker Scan
-One keybind — auto-marks priority kick / dispel / CC mobs in the current dungeon. Saves the leader from manually assigning markers each pull.
+- One keybind marks the priority kick, dispel, and CC mobs as you approach a pull
+- Currently has a priority list for **Magisters' Terrace**; more dungeons will follow
+
+### Boss-specific helpers
+- **L'ura memory game** (Midnight Falls) — each player with the Dark Rune sees their personal pattern plus an arrow to their spot
+- **DK Grip / Grip / Kick** (Chimaerus) — one keybind runs Death Grip → Death Grip → Mind Freeze and auto-targets the next un-gripped Haunting Essence
 
 ---
 
-## Per-boss modules (Midnight raid lineup)
+## Per-Boss Modules
 
-| Boss | Module | What it does |
-|---|---|---|
-| Imperator Averzian | `ImperatorAverzian` + `StackTankSwap` | Kicks, dispels, soaks + Blackening Wounds swap |
-| Vorasius | `Vorasius` + `VorasiusTanks` | Add-kicks, dispels + Smashing Frenzy cycle |
-| Vaelgor & Ezzorak | `VaelgorEzzorak` + `VaelgorEzzorakTanks` | Kicks, fear dispels, tether warnings + dragon swap |
-| Lightblinded Vanguard | `Lightblinded` + `LightblindedTanks` | Kicks, soaks, externals + Bellamy/Venel router |
-| Fallen-King Salhadaar | `Salhadaar` + `StackTankSwap` | Kicks, Void Convergence orbs + Cleave-stack swap |
-| Crown of the Cosmos | `CrownOfCosmos` | Add-kicks, tethers, dispels |
-| Chimaerus | `Chimaerus` + `ClassSequences` | Kicks, dispels, soaks + DK Grip sequence |
-| Belo'ren | `Beloren` | Radiant Echoes orbs, color soaks, externals |
-| Midnight Falls (L'ura) | `MidnightFalls` + `LuraMemory` | Safeguard Prism + Dark Rune memory game |
+Boss modules currently cover the **Season 1 raids**. Season 2 (**The Venomous Abyss**) boss modules aren't in yet — the general tools above (kick rotation, focus kick bar, marker kick alerts) work in any content.
 
----
-
-## Required companion
-
-You also need to install **[VoidRaidToolsReader](https://www.curseforge.com/wow/addons/voidraidtoolsreader)** alongside this addon. The Reader silently records boss events so cross-class alerts have the data they need to fire correctly. First-time install shows a one-click consent dialog explaining what's collected — **opt-out keeps it local-only**.
-
-Contributing that data to the shared model is optional and uses a small separate companion app (`voidscout-uploader`, open-source) — see the Reader's page, or grab it at **https://voidscout.io/install**.
+| Boss | What it does |
+|---|---|
+| Imperator Averzian | Kicks, dispels, soaks + Blackening Wounds tank swap |
+| Vorasius | Add kicks, dispels + Smashing Frenzy swap cycle |
+| Vaelgor & Ezzorak | Kicks, fear dispels, tether warnings + dragon swap |
+| Lightblinded Vanguard | Kicks, soaks, externals + Bellamy/Venel swap router |
+| Fallen-King Salhadaar | Kicks, Void Convergence orbs + cleave-stack swap |
+| Crown of the Cosmos | Add kicks, tethers, dispels |
+| Chimaerus | Kicks, dispels, soaks + DK Grip sequence |
+| Belo'ren | Radiant Echoes orbs, color soaks, externals |
+| Midnight Falls (L'ura) | Safeguard Prism + Dark Rune memory game |
 
 ---
 
-## Setup
+## Slash Commands
 
-1. Install **VoidRaidTools** + **VoidRaidToolsReader** from CurseForge
-2. `/reload` after install
-3. Open the panel with the minimap button or `/vrt panel`
-4. (Optional) **Disable All** at the bottom, then re-enable only the modules you want
-5. Bind keys for `VoidRaidTools — TAUNT` and `VoidRaidTools — Sequence` in **Keybindings → VoidRaidTools** so the TAUNT and Grip popups have a key to listen for
-
----
-
-## Slash commands
-
-- `/vrt panel` — opens the main panel
-- `/vrt edit` — moves frames around the screen
-- `/vrt resetpos` — resets all movable frames to defaults
+| Command | What it does |
+|---|---|
+| `/vrt panel` | Open the main panel (also `/vrtp`) |
+| `/vrt edit` | Unlock frames so you can move them |
+| `/vrt resetpos` | Reset all frames to their default positions |
+| `/vrtmark` | Show Marker Scan status for your current zone |
 
 ---
 
-*Requires VoidRaidToolsReader · VoidLib bundled · MIT · by Vede ([voidscout.io](https://voidscout.io))*
+## Getting Started
+
+1. Install **VoidRaidTools** and **VoidRaidToolsReader** with the CurseForge app (or copy both folders into `World of Warcraft/_retail_/Interface/AddOns/`).
+2. Restart WoW or `/reload`.
+3. Open the panel with the minimap button or `/vrt panel`.
+4. Optional: click **Disable All**, then turn on only the modules you want.
+5. In **Keybindings → VoidRaidTools**, bind keys for **TAUNT** and **Sequence** so those popups have a key to listen for.
+
+---
+
+## Good to Know
+
+- **Why the Reader is required:** VoidRaidToolsReader records boss events so the cross-class alerts have the data they need. It asks for your consent on first login, and local-only mode keeps everything on your computer.
+- Contributing that data to the shared model is optional and uses the small companion app at [voidscout.io/install](https://voidscout.io/install).
+
+---
+
+## Compatibility
+
+- **WoW 12.1.5** (Midnight Season 2)
+- Requires **VoidRaidToolsReader**
+- Designed to run alongside DBM or BigWigs
+
+---
+
+*Part of the Void addon family by Vede · MIT licensed · free M+ & raid player lookups at [voidscout.io](https://voidscout.io) · more addons & apps at [tinkerline.io](https://tinkerline.io) · [Discord](https://discord.gg/7ZHmx7zMDh)*
