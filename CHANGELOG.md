@@ -1,5 +1,26 @@
 # VoidRaidTools Changelog
 
+## [1.1.0] — 2026-10-22
+
+### New
+- **Focus Kick Bar rebuilt:** it now shows the spell name, icon and a filling cast bar, green when you can kick it, grey when you can't. It follows your **target** when you have no focus set, so it works without ever using focus.
+
+### Fixed
+- **Group sync works in premade groups.** Kick rotation, tank assignments and the L'ura oracle only used the dungeon-finder channel, so they never reached guild or premade groups.
+- **Edit mode (`/vrt edit`)** lays every frame out in a grid so nothing is stacked; frames you don't move go back where they were.
+- The panel header shows the right version.
+- The Void addons info panel (`/vhub info`) now lists only the addons you can actually get, with up-to-date descriptions.
+
+## [1.0.12] — 2026-10-14
+
+### Changed
+- Updated for WoW 12.1.5 — no longer shows as out of date.
+
+## [1.0.11] — 2026-08-11
+
+### Changed
+- Compatibility with patch 12.1 "Curse of Ula'tek" (TOC interface bump to 12.1).
+
 ## 1.0.10 — 2026-06-22
 
 ### Changed
