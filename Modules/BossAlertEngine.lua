@@ -60,8 +60,11 @@ local function fireAlert(module, spell_id)
     -- Route the visible alert through KickRotation's FlashAlert panel —
     -- raid users already have this on-screen during pulls, so it's the
     -- natural canvas for raid-wide alerts.
+    -- Only when that panel is actually on screen (user-hidden, disabled or
+    -- out-of-instance = invisible flash), else fall back to RaidNotice.
     local kr = VRT and VRT.modules and VRT.modules.kickrotation
-    if kr and kr.FlashAlert then
+    local kr_frame = kr and kr.state and kr.state.floating_frame
+    if kr and kr.FlashAlert and kr_frame and kr_frame:IsVisible() then
         kr:FlashAlert(cfg.priority == "CRITICAL" and 4.0 or 3.0, cfg.label)
     else
         -- Fallback: RaidNotice if KickRotation panel isn't loaded.
@@ -104,6 +107,8 @@ local function OnEvent(self, event, ...)
         end
     elseif event == "ENCOUNTER_TIMELINE_EVENT_ADDED" then
         if not module.state.active then return end
+        -- Own event frame, so Core's per-module enable gate doesn't apply.
+        if VRT and VRT.IsModuleEnabled and not VRT:IsModuleEnabled(module.id) then return end
         local sid = resolveCleanSpellID((...))
         if sid then fireAlert(module, sid) end
     end

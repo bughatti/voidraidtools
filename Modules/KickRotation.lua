@@ -194,13 +194,35 @@ local function GetInterruptsForClassSpec(class, spec_name)
     return result
 end
 
+-- English spec names by specID. GetSpecializationInfo's name is LOCALIZED,
+-- but the table above (and the HELLO payload peers compare) use English.
+local SPEC_NAME_BY_ID = {
+    [250] = "Blood", [251] = "Frost", [252] = "Unholy",
+    [577] = "Havoc", [581] = "Vengeance",
+    [102] = "Balance", [103] = "Feral", [104] = "Guardian", [105] = "Restoration",
+    [1467] = "Devastation", [1468] = "Preservation", [1473] = "Augmentation",
+    [253] = "Beast Mastery", [254] = "Marksmanship", [255] = "Survival",
+    [62] = "Arcane", [63] = "Fire", [64] = "Frost",
+    [268] = "Brewmaster", [269] = "Windwalker", [270] = "Mistweaver",
+    [65] = "Holy", [66] = "Protection", [70] = "Retribution",
+    [256] = "Discipline", [257] = "Holy", [258] = "Shadow",
+    [259] = "Assassination", [260] = "Outlaw", [261] = "Subtlety",
+    [262] = "Elemental", [263] = "Enhancement", [264] = "Restoration",
+    [265] = "Affliction", [266] = "Demonology", [267] = "Destruction",
+    [71] = "Arms", [72] = "Fury", [73] = "Protection",
+}
+
 -- Get the player's current spec name, e.g. "Protection", "Retribution"
 local function GetMySpecName()
-    if not GetSpecialization or not GetSpecializationInfo then return nil end
-    local idx = GetSpecialization()
+    -- The bare globals only exist via the deprecation fallbacks (CVar-gated).
+    local CSI = C_SpecializationInfo
+    local getSpec = (CSI and CSI.GetSpecialization) or GetSpecialization
+    local getInfo = (CSI and CSI.GetSpecializationInfo) or GetSpecializationInfo
+    if not getSpec or not getInfo then return nil end
+    local idx = getSpec()
     if not idx then return nil end
-    local _, name = GetSpecializationInfo(idx)
-    return name
+    local spec_id, name = getInfo(idx)
+    return SPEC_NAME_BY_ID[spec_id] or name
 end
 
 local CLASS_COLOR = {
@@ -417,6 +439,22 @@ local function DetectGroup()
             end
         end
     end
+    -- Carry cooldowns over from the previous roster: this runs on every
+    -- roster update and boss pull, and fresh entries start at last_used = 0
+    -- (= falsely "ready").
+    for name, m in pairs(members) do
+        local old = M.state.members[name]
+        if old and old.interrupts then
+            for _, ip in ipairs(m.interrupts) do
+                for _, oip in ipairs(old.interrupts) do
+                    if oip.spell_id == ip.spell_id then ip.last_used = oip.last_used; break end
+                end
+            end
+        end
+    end
+    -- Same order on every client (not "self first"), so all VRT users
+    -- agree on who is UP NEXT.
+    table.sort(order)
     M.state.members = members
     M.state.priority_order = order
 end
@@ -675,8 +713,10 @@ function M:OnUnitAura(unit) end  -- not used; kept for Core dispatch compat
 -- interrupt as used. A Paladin Prot using AS marks AS; a later Rebuke
 -- marks Rebuke independently.
 local function HandleSelfCastSucceeded(unit, spell_id)
-    if unit ~= "player" then return end
+    -- "pet": pet abilities (Gnaw, Shambling Rush, ...) fire for the pet unit.
+    if unit ~= "player" and unit ~= "pet" then return end
     if not spell_id then return end
+    if issecretvalue and issecretvalue(spell_id) then return end
     local info = INTERRUPTS_BY_SPELL_ID[spell_id]
     if not info then return end
     local n = UnitName("player")
@@ -795,8 +835,8 @@ local function SetupEventFrame()
     -- Self-only: detect MY OWN kick, broadcast, let other VRT clients
     -- update via the addon channel. Listening to party1-4 cast events
     -- directly is the taint vector (their spell_id can be secret when
-    -- their target is a hidden-identity enemy).
-    event_frame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
+    -- their target is a hidden-identity enemy). Our own pet counts as self.
+    event_frame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player", "pet")
     event_frame:SetScript("OnEvent", function(_, event, unit, _, spell_id)
         if event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_ENTERING_WORLD" then
             DetectGroup()
@@ -827,7 +867,7 @@ function M:UpdateInstanceVisibility()
     -- explicitly click "Show Kick Frame" again. Otherwise the box came
     -- back every time someone /reloaded mid-key.
     local s = VRT and VRT.ModuleSettings and VRT:ModuleSettings(M.id) or {}
-    if s.user_hidden then
+    if s.user_hidden or (VRT and VRT.IsModuleEnabled and not VRT:IsModuleEnabled(M.id)) then
         self.state.floating_frame:Hide()
         return
     end
@@ -856,11 +896,9 @@ function M:OnInit()
     if M.state.floating_frame then
         local fast_elapsed = 0
         local slow_elapsed = 0
-        local hello_elapsed = 0
         M.state.floating_frame:HookScript("OnUpdate", function(_, dt)
             fast_elapsed = fast_elapsed + dt
             slow_elapsed = slow_elapsed + dt
-            hello_elapsed = hello_elapsed + dt
             if fast_elapsed >= 0.2 then
                 fast_elapsed = 0
                 if HasAnyActiveCast() then
@@ -888,13 +926,16 @@ function M:OnInit()
                 end
                 if not HasAnyActiveCast() or dirty then RenderFrame() end
             end
-            if hello_elapsed >= HELLO_PERIOD then
-                hello_elapsed = 0
-                BroadcastHello()
-            end
         end)
         RenderFrame()
     end
+    -- Periodic HELLO on its own ticker: OnUpdate stops while the frame is
+    -- hidden ("Hide Kick Frame", out of instance), and peers then marked us
+    -- untracked after HELLO_STALE_AFTER.
+    C_Timer.NewTicker(HELLO_PERIOD, function()
+        if VRT and VRT.IsModuleEnabled and not VRT:IsModuleEnabled(M.id) then return end
+        BroadcastHello()
+    end)
     -- If we're already in a dungeon/raid at addon load (e.g. /reload
     -- mid-key), show the frame immediately.
     self:UpdateInstanceVisibility()

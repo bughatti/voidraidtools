@@ -177,12 +177,21 @@ local registered_pa_anchor = nil
 local function RegisterPrivateAuraHooks()
     if not C_UnitAuras then return end
     -- Sound on private-aura apply: same path NSRT uses for instant cue.
-    if C_UnitAuras.AddPrivateAuraAppliedSound and not registered_pa_sound then
-        local ok, soundID = pcall(C_UnitAuras.AddPrivateAuraAppliedSound, {
+    -- 12.1: AddAuraSound(trigger, info) replaced AddPrivateAuraAppliedSound
+    -- (now only a CVar-gated deprecation fallback).
+    local add_new = Enum and Enum.UnitAuraSoundTrigger and C_UnitAuras.AddAuraSound
+    if (add_new or C_UnitAuras.AddPrivateAuraAppliedSound) and not registered_pa_sound then
+        local info = {
             spellID       = DARK_RUNE_SPELL,
             unitToken     = "player",
             soundFileName = "Sound\\Interface\\RaidWarning.ogg",
-        })
+        }
+        local ok, soundID
+        if add_new then
+            ok, soundID = pcall(add_new, Enum.UnitAuraSoundTrigger.Added, info)
+        else
+            ok, soundID = pcall(C_UnitAuras.AddPrivateAuraAppliedSound, info)
+        end
         if ok and soundID then
             registered_pa_sound = soundID
         end
@@ -217,8 +226,9 @@ end
 
 local function UnregisterPrivateAuraHooks()
     if not C_UnitAuras then return end
-    if registered_pa_sound and C_UnitAuras.RemovePrivateAuraAppliedSound then
-        pcall(C_UnitAuras.RemovePrivateAuraAppliedSound, registered_pa_sound)
+    local remove_sound = C_UnitAuras.RemoveAuraSound or C_UnitAuras.RemovePrivateAuraAppliedSound
+    if registered_pa_sound and remove_sound then
+        pcall(remove_sound, registered_pa_sound)
         registered_pa_sound = nil
     end
     if registered_pa_anchor and C_UnitAuras.RemovePrivateAuraAnchor then
@@ -451,8 +461,9 @@ local function ShowLegend()
     local seq = M.state.flash_sequence or M.state.oracle_clicks or {}
     local offsets = GetRadialOffsets(n)
 
-    for _, c in ipairs(LegendFrame.cells) do c:Hide(); c:SetParent(nil) end
-    LegendFrame.cells = {}
+    -- Cells are pooled per slot and re-used: frames are never garbage-
+    -- collected, so building new ones every refresh leaked UI objects.
+    for _, c in ipairs(LegendFrame.cells) do c:Hide() end
 
     for i = 1, n do
         local shape_id = seq[i]
@@ -465,14 +476,30 @@ local function ShowLegend()
         local off = offsets[i]
         if not off then break end
 
-        local cell = CreateFrame("Frame", nil, LegendFrame, "BackdropTemplate")
-        cell:SetSize(34, 34)
+        local cell = LegendFrame.cells[i]
+        if not cell then
+            cell = CreateFrame("Frame", nil, LegendFrame, "BackdropTemplate")
+            cell:SetSize(34, 34)
+            cell:SetBackdrop({
+                bgFile   = "Interface\\Buttons\\WHITE8X8",
+                edgeFile = "Interface\\Buttons\\WHITE8X8",
+                edgeSize = 1,
+            })
+            cell.icon = cell:CreateTexture(nil, "ARTWORK")
+            cell.icon:SetSize(24, 24)
+            cell.icon:SetPoint("CENTER", 0, 2)
+            cell.glyph = cell:CreateFontString(nil, "OVERLAY")
+            cell.glyph:SetFont(STANDARD_TEXT_FONT, 22, "OUTLINE")
+            cell.glyph:SetPoint("CENTER", 0, 2)
+            -- Numbered slot label below the cell — matches the screenshot
+            -- where the 1-5 numbers sit just outside each slot.
+            cell.num = cell:CreateFontString(nil, "OVERLAY")
+            cell.num:SetFont(STANDARD_TEXT_FONT, 11, "OUTLINE")
+            cell.num:SetPoint("BOTTOM", 0, -11)
+            LegendFrame.cells[i] = cell
+        end
+        cell:ClearAllPoints()
         cell:SetPoint("CENTER", off.x, off.y)
-        cell:SetBackdrop({
-            bgFile   = "Interface\\Buttons\\WHITE8X8",
-            edgeFile = "Interface\\Buttons\\WHITE8X8",
-            edgeSize = 1,
-        })
         local col = POSITION_COLORS[i] or {1, 1, 1}
         if shape then
             cell:SetBackdropColor(col[1] * 0.20, col[2] * 0.20, col[3] * 0.20, 0.95)
@@ -483,32 +510,25 @@ local function ShowLegend()
         end
 
         -- Symbol icon (or nothing — slot stays empty until Oracle clicks)
+        cell.icon:Hide()
+        cell.glyph:Hide()
         if shape and shape.tex then
-            local icon = cell:CreateTexture(nil, "ARTWORK")
-            icon:SetTexture(shape.tex)
-            icon:SetSize(24, 24)
-            icon:SetPoint("CENTER", 0, 2)
+            cell.icon:SetTexture(shape.tex)
+            cell.icon:Show()
         elseif shape then
-            local fs = cell:CreateFontString(nil, "OVERLAY")
-            fs:SetFont(STANDARD_TEXT_FONT, 22, "OUTLINE")
-            fs:SetText(shape.text or shape.label)
-            fs:SetTextColor(unpack(shape.color))
-            fs:SetPoint("CENTER", 0, 2)
+            cell.glyph:SetText(shape.text or shape.label)
+            cell.glyph:SetTextColor(unpack(shape.color))
+            cell.glyph:Show()
         end
 
-        -- Numbered slot label below the cell — matches the screenshot
-        -- where the 1-5 numbers sit just outside each slot.
-        local num = cell:CreateFontString(nil, "OVERLAY")
-        num:SetFont(STANDARD_TEXT_FONT, 11, "OUTLINE")
-        num:SetText(tostring(i))
+        cell.num:SetText(tostring(i))
         if shape then
-            num:SetTextColor(col[1], col[2], col[3])
+            cell.num:SetTextColor(col[1], col[2], col[3])
         else
-            num:SetTextColor(col[1] * 0.7, col[2] * 0.7, col[3] * 0.7)
+            cell.num:SetTextColor(col[1] * 0.7, col[2] * 0.7, col[3] * 0.7)
         end
-        num:SetPoint("BOTTOM", 0, -11)
 
-        LegendFrame.cells[i] = cell
+        cell:Show()
     end
     LegendFrame:Show()
 end
@@ -538,11 +558,10 @@ local function ResetOracle()
     -- Clear the radial map cells AND hide it. Re-draws empty on next
     -- Oracle click.
     if LegendFrame then
+        -- Hide only; ShowLegend re-uses the pooled cells.
         for _, c in ipairs(LegendFrame.cells or {}) do
             c:Hide()
-            c:SetParent(nil)
         end
-        LegendFrame.cells = {}
         LegendFrame:Hide()
     end
 end
@@ -567,6 +586,9 @@ local function OracleClick(shape_id)
     if #M.state.oracle_clicks > 0
        and M.state.oracle_clicks[#M.state.oracle_clicks] == shape_id then
         M.state.oracle_clicks[#M.state.oracle_clicks] = nil
+        -- Unlock: ShowLegend prefers flash_sequence, so a stale locked
+        -- sequence would keep showing over the corrected clicks.
+        M.state.flash_sequence = nil
     elseif #M.state.oracle_clicks < n then
         for _, s in ipairs(M.state.oracle_clicks) do
             if s == shape_id then return end
@@ -663,7 +685,14 @@ local function BuildOracleFrame()
     reset:SetSize(56, 18)
     reset:SetPoint("TOPRIGHT", -4, -4)
     reset:SetText("Reset")
-    reset:SetScript("OnClick", function() ResetOracle() end)
+    reset:SetScript("OnClick", function()
+        ResetOracle()
+        -- Tell the raid too (empty CLICKS = cleared map), or everyone keeps
+        -- the miscalled assignments until the next click.
+        if M.state.is_oracle and VRT and VRT.SendModuleMessage then
+            VRT:SendModuleMessage(M.id, "CLICKS", "", "INSTANCE_CHAT")
+        end
+    end)
 
     f.status = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     f.status:SetPoint("BOTTOM", 0, 4)
@@ -886,7 +915,9 @@ function M:OnZoneChanged()
         self.state.current_oracle_name = nil
         self.state.is_oracle = false
         if OracleFrame then OracleFrame:Hide() end
-        if PlayerFrame then PlayerFrame:Show() end
+        -- The Player bar is retired (PlayerFrame is always nil); the legend
+        -- now carries the Be Oracle control, so it's what must show here.
+        ShowLegend()
         UpdatePlayerFrameForOracleState()
         -- Hook into Blizz's private-aura system: instant sound on apply
         -- + render an additional copy of the shape icon at our anchor
@@ -899,7 +930,7 @@ function M:OnZoneChanged()
         end
     else
         if OracleFrame then OracleFrame:Hide() end
-        if PlayerFrame then PlayerFrame:Hide() end
+        HideLegend()
         if ResultFrame then ResultFrame:Hide() end
         self.state._zone_msg_shown = nil
     end
@@ -1031,12 +1062,12 @@ function M:OnSlash(args)
     end
     if args == "show" then
         if OracleFrame then OracleFrame:Show() end
-        if PlayerFrame then PlayerFrame:Show() end
+        ShowLegend()
         return
     end
     if args == "hide" then
         if OracleFrame then OracleFrame:Hide() end
-        if PlayerFrame then PlayerFrame:Hide() end
+        HideLegend()
         if ResultFrame then ResultFrame:Hide() end
         return
     end

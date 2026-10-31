@@ -197,6 +197,8 @@ end
 local frame  -- event frame, lifecycle-scoped
 
 local function OnEvent(_, event, unit)
+    -- Own event frame, so Core's per-module enable gate doesn't apply.
+    if VRT and VRT.IsModuleEnabled and not VRT:IsModuleEnabled(M.id) then return end
     if event == "PLAYER_FOCUS_CHANGED" or event == "PLAYER_TARGET_CHANGED" then
         PollCast()
         return
@@ -237,7 +239,7 @@ function M:OnInit()
         frame:RegisterEvent(ev)
     end
     frame:SetScript("OnEvent", OnEvent)
-    PollCast()
+    if not (VRT and VRT.IsModuleEnabled and not VRT:IsModuleEnabled(M.id)) then PollCast() end
 end
 
 function M:OnDisable() HideCastBar() end

@@ -456,9 +456,18 @@ function M:OnTimelineEvent(eventInfo)
     local cast_at = GetTime() + duration
 
     local spell_id = SafeReadField(eventInfo, "spellID")
-    -- Only care about Midnight Flames. If spellID secret, fall back to
-    -- timing-window match (MFs are 100+ seconds apart so unambiguous).
-    if spell_id and spell_id ~= MIDNIGHT_FLAMES_SPELL then return end
+    -- Only care about Midnight Flames. The payload spellID is secret for
+    -- encounter events, and a timing-only match let ANY boss event inside
+    -- the 60s window re-anchor the schedule. Resolve a clean ID through the
+    -- C_EncounterEvents bridge instead and require a positive match.
+    if spell_id == nil and C_EncounterEvents and C_EncounterEvents.GetEventInfo then
+        local eid = SafeReadField(eventInfo, "id")
+        if eid then
+            local ok, info = pcall(C_EncounterEvents.GetEventInfo, eid)
+            if ok and info then spell_id = SafeReadField(info, "spellID") end
+        end
+    end
+    if spell_id ~= MIDNIGHT_FLAMES_SPELL then return end
 
     local idx, signed_diff = FindClosestIdx(s.schedule.intermission, cast_at, 60)
     if not idx then return end
@@ -466,7 +475,8 @@ function M:OnTimelineEvent(eventInfo)
     if math.abs(signed_diff) > DRIFT_THRESHOLD then
         local actual = ReAnchorSchedule(idx, cast_at)
         dbg("ETEA MF[%d] drift %.2fs -> re-anchored", idx, actual or 0)
-        if s.next_idx.intermission == idx then ScheduleNextIntermission() end
+        -- Later entries shifted too, so the pending timer moved unless idx is past it.
+        if idx <= s.next_idx.intermission then ScheduleNextIntermission() end
     else
         dbg("ETEA MF[%d] on-schedule (delta=%.2fs)", idx, signed_diff)
     end
@@ -495,6 +505,8 @@ function M:OnEncounterStart(eid)
     s.encounter_start_clock = GetTime()
     s.schedule = { intermission = BuildAbsoluteSchedule(s.encounter_start_clock) }
     s.next_idx = { intermission = 1 }
+    -- Cancel any live timer (e.g. a running sim) before dropping its handle.
+    CancelPopupHandle("intermission")
     s.popup_handle = { intermission = nil }
     ScheduleNextIntermission()
     if assignment_frame then assignment_frame:Hide() end
@@ -559,6 +571,7 @@ function M:OnSlash(args)
         s.encounter_start_clock = GetTime()
         s.schedule = { intermission = BuildAbsoluteSchedule(s.encounter_start_clock) }
         s.next_idx = { intermission = 1 }
+        CancelPopupHandle("intermission")
         s.popup_handle = { intermission = nil }
         if not s.my_assignment then
             s.my_assignment = "vaelgor"

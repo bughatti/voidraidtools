@@ -452,11 +452,19 @@ function M:OnTimelineEvent(eventInfo)
     if not duration or duration <= 0 then return end
     local cast_at = GetTime() + duration
 
-    -- Single-source fight: match by spellID OR fall back to timing.
+    -- Match by spellID. The payload spellID is secret for encounter events,
+    -- and a timing-only match let ANY boss event inside the 30s window
+    -- re-anchor the schedule. Resolve a clean ID through the
+    -- C_EncounterEvents bridge instead and require a positive match.
     local spell_id = SafeReadField(eventInfo, "spellID")
-    if spell_id and spell_id ~= FRENZY_SPELL_ID then return end
-    -- If spell_id is nil (tainted), fall back to closest-match (we only
-    -- have one source so the match is direct).
+    if spell_id == nil and C_EncounterEvents and C_EncounterEvents.GetEventInfo then
+        local eid = SafeReadField(eventInfo, "id")
+        if eid then
+            local ok, info = pcall(C_EncounterEvents.GetEventInfo, eid)
+            if ok and info then spell_id = SafeReadField(info, "spellID") end
+        end
+    end
+    if spell_id ~= FRENZY_SPELL_ID then return end
 
     local idx, signed_diff = FindClosestIdx(s.schedule.frenzy, cast_at, 30)
     if not idx then return end
@@ -464,7 +472,8 @@ function M:OnTimelineEvent(eventInfo)
     if math.abs(signed_diff) > DRIFT_THRESHOLD then
         local actual = ReAnchorSchedule("frenzy", idx, cast_at)
         dbg("ETEA frenzy[%d] drift %.2fs -> re-anchored", idx, actual or 0)
-        if s.next_idx.frenzy == idx then ScheduleNextPopup("frenzy") end
+        -- Later entries shifted too, so the pending timer moved unless idx is past it.
+        if idx <= s.next_idx.frenzy then ScheduleNextPopup("frenzy") end
     else
         dbg("ETEA frenzy[%d] on-schedule (delta=%.2fs)", idx, signed_diff)
     end
@@ -492,6 +501,8 @@ function M:OnEncounterStart(eid)
     s.encounter_start_clock = GetTime()
     s.schedule = { frenzy = BuildAbsoluteSchedule(s.encounter_start_clock) }
     s.next_idx = { frenzy = 1 }
+    -- Cancel any live timer (e.g. a running sim) before dropping its handle.
+    CancelPopupHandle("frenzy")
     s.popup_handle = { frenzy = nil }
     ScheduleNextPopup("frenzy")
     if assignment_frame then assignment_frame:Hide() end
@@ -556,6 +567,7 @@ function M:OnSlash(args)
         s.encounter_start_clock = GetTime()
         s.schedule = { frenzy = BuildAbsoluteSchedule(s.encounter_start_clock) }
         s.next_idx = { frenzy = 1 }
+        CancelPopupHandle("frenzy")
         s.popup_handle = { frenzy = nil }
         if not s.my_assignment then
             s.my_assignment = "first"

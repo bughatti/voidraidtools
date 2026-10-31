@@ -1,5 +1,15 @@
 # VoidRaidTools Changelog
 
+## [1.1.1] — 2026-10-31
+
+### Fixed
+- **Kick rotation:** cooldowns no longer reset to "ready" when someone joins or a boss is pulled; every VRT user sees the same "up next" order; pet interrupts count; non-English clients match spec names; you keep showing as tracked to others while the kick frame is hidden.
+- **Turning a module off** now really stops it (the Focus Kick Bar and kick frame kept running).
+- **Marker scan macro** no longer toggles your own marks off or overwrites someone else's, and never marks friendly or dead targets.
+- **Marker kick alert** drops a cast when its nameplate leaves range, so it can't fire late.
+- **Raid tank-swap and Lura helpers:** safer handling of hidden (secret) values, and no blocked-action errors in combat; essence grips no longer try to auto-target (WoW blocks it), you tab-target.
+- The options panel no longer rebuilds (and leaks) its rows every time you open it.
+
 ## [1.1.0] — 2026-10-22
 
 ### New

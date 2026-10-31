@@ -207,7 +207,11 @@ local function ShowTauntPopup(cfg, stacks, sender)
     if not btn then return end
     btn:Show()
     if btn.info then
-        btn.info:SetText(("%s at |cffff8040%d stacks|r"):format(sender or "partner", stacks or 0))
+        if stacks then
+            btn.info:SetText(("%s at |cffff8040%d stacks|r"):format(sender or "partner", stacks))
+        else
+            btn.info:SetText(("%s called swap"):format(sender or "partner"))
+        end
     end
     local end_time = GetTime() + POPUP_DURATION
     btn:SetScript("OnUpdate", function(self)
@@ -331,13 +335,26 @@ local function RegisterPrivateAuraFor(cfg)
     if not cfg.debuff_spell_id then return end
 
     -- Sound (works for users with audio on; harmless otherwise)
-    if C_UnitAuras.AddPrivateAuraAppliedSound and not registered_sounds[cfg.id] then
-        local ok, sid = pcall(C_UnitAuras.AddPrivateAuraAppliedSound, {
+    -- 12.1: AddAuraSound(trigger, info) replaced AddPrivateAuraAppliedSound
+    -- (now only a CVar-gated deprecation fallback, mapped to "Added"), and
+    -- stack increments moved to their own ApplicationsIncreased trigger —
+    -- register both so every stack still chimes.
+    local add_new = Enum and Enum.UnitAuraSoundTrigger and C_UnitAuras.AddAuraSound
+    if (add_new or C_UnitAuras.AddPrivateAuraAppliedSound) and not registered_sounds[cfg.id] then
+        local info = {
             spellID       = cfg.debuff_spell_id,
             unitToken     = "player",
             soundFileName = cfg.sound_file,
-        })
-        if ok and sid then registered_sounds[cfg.id] = sid end
+        }
+        if add_new then
+            local ok, sid = pcall(add_new, Enum.UnitAuraSoundTrigger.Added, info)
+            if ok and sid then registered_sounds[cfg.id] = sid end
+            local ok2, sid2 = pcall(add_new, Enum.UnitAuraSoundTrigger.ApplicationsIncreased, info)
+            if ok2 and sid2 then registered_sounds[cfg.id .. ".stack"] = sid2 end
+        else
+            local ok, sid = pcall(C_UnitAuras.AddPrivateAuraAppliedSound, info)
+            if ok and sid then registered_sounds[cfg.id] = sid end
+        end
     end
 
     -- Anchor (visual stack icon — primary feedback for sound-off users)
@@ -434,7 +451,8 @@ end
 
 function M:OnAddonMessage(kind, data, sender)
     if kind ~= "SWAPREQUEST" then return end
-    local cfg_id, stacks_str = data:match("^([^|]+)|(%d+)$")
+    -- Payload is "<cfg_id>|<stacks>" or "<cfg_id>|manual" (CallSwap).
+    local cfg_id, stacks_str = data:match("^([^|]+)|([^|]*)$")
     if not cfg_id then return end
     local cfg = FindConfigByID(cfg_id)
     if not cfg then return end
@@ -447,7 +465,7 @@ function M:OnAddonMessage(kind, data, sender)
         return
     end
     if sender == self.state.my_name then return end  -- echo of our own broadcast
-    ShowTauntPopup(cfg, tonumber(stacks_str) or 0, sender)
+    ShowTauntPopup(cfg, tonumber(stacks_str), sender)
 end
 
 ----------------------------------------------------------------------

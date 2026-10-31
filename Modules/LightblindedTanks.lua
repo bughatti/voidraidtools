@@ -607,7 +607,9 @@ function M:OnTimelineEvent(eventInfo)
         boss_key = "bellamy"
     elseif spell_id == VENEL_JUDGMENT_SPELL then
         boss_key = "venel"
-    else
+    elseif spell_id == nil then
+        -- Timing fallback only when the ID is unreadable; a readable ID
+        -- that isn't a Judgment is definitively some other ability.
         local b_idx, b_diff = FindClosestIdx(s.schedule.bellamy, cast_at, 5)
         local v_idx, v_diff = FindClosestIdx(s.schedule.venel, cast_at, 5)
         if b_idx and (not v_idx or math.abs(b_diff) < math.abs(v_diff)) then
@@ -624,7 +626,9 @@ function M:OnTimelineEvent(eventInfo)
     if math.abs(signed_diff) > DRIFT_THRESHOLD then
         local actual = ReAnchorSchedule(boss_key, idx, cast_at)
         dbg("ETEA %s[%d] drift %.2fs → re-anchored", boss_key, idx, actual or 0)
-        if s.next_idx[boss_key] == idx then
+        -- Re-anchoring idx also shifts every later entry, so the pending
+        -- timer (next_idx) moved too unless idx is past it.
+        if idx <= s.next_idx[boss_key] then
             ScheduleNextPopup(boss_key)
         end
     else
@@ -642,14 +646,25 @@ end
 -- valuable confirmation that the timer fired correctly.
 ----------------------------------------------------------------------
 local function RegisterPrivateAuraSounds()
-    if not (C_UnitAuras and C_UnitAuras.AddPrivateAuraAppliedSound) then return end
+    if not C_UnitAuras then return end
+    -- 12.1: AddAuraSound(trigger, info) replaced AddPrivateAuraAppliedSound,
+    -- which now only exists as a CVar-gated deprecation fallback.
+    local add_new = Enum and Enum.UnitAuraSoundTrigger and C_UnitAuras.AddAuraSound
+    local add_old = C_UnitAuras.AddPrivateAuraAppliedSound
+    if not (add_new or add_old) then return end
     if #M.state.pa_sound_ids > 0 then return end  -- already registered
     for _, spell_id in ipairs({ BELLAMY_JUDGMENT_SPELL, VENEL_JUDGMENT_SPELL }) do
-        local ok, sound_id = pcall(C_UnitAuras.AddPrivateAuraAppliedSound, {
+        local info = {
             spellID       = spell_id,
             unitToken     = "player",
             soundFileName = "Sound\\Interface\\AlarmClockWarning2.ogg",
-        })
+        }
+        local ok, sound_id
+        if add_new then
+            ok, sound_id = pcall(add_new, Enum.UnitAuraSoundTrigger.Added, info)
+        else
+            ok, sound_id = pcall(add_old, info)
+        end
         if ok and sound_id then
             table.insert(M.state.pa_sound_ids, sound_id)
         end
@@ -695,6 +710,9 @@ function M:OnEncounterStart(eid)
         venel   = BuildAbsoluteSchedule("venel",   s.encounter_start_clock),
     }
     s.next_idx     = { bellamy = 1, venel = 1 }
+    -- Cancel any live timers (e.g. a running sim) before dropping their handles.
+    CancelPopupHandle("bellamy")
+    CancelPopupHandle("venel")
     s.popup_handle = { bellamy = nil, venel = nil }
     ScheduleNextPopup("bellamy")
     ScheduleNextPopup("venel")
@@ -780,6 +798,8 @@ function M:OnSlash(args)
             venel   = BuildAbsoluteSchedule("venel",   s.encounter_start_clock),
         }
         s.next_idx     = { bellamy = 1, venel = 1 }
+        CancelPopupHandle("bellamy")
+        CancelPopupHandle("venel")
         s.popup_handle = { bellamy = nil, venel = nil }
         if not s.my_assignment then
             s.my_assignment = "bellamy"

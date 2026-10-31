@@ -288,6 +288,12 @@ function M:OnZoneChanged()
 end
 
 function M:OnEncounterEnd(encounterID, ...)
+    -- Disarm automatic aura capture — even with recording off, or a pull
+    -- that started while recording stays "active" forever.
+    M.state.encounter_active  = false
+    M.state.current_encounter = nil
+    M.state.auto_aura_known   = {}
+
     local d = GetStore()
     if not d.recording then return end
     PushCapped(d.encounter_log, {
@@ -296,11 +302,6 @@ function M:OnEncounterEnd(encounterID, ...)
         encounter_id   = encounterID,
         success_arg    = select(1, ...),  -- best-effort capture of varargs
     }, CAP_ENCOUNTER)
-
-    -- Disarm automatic aura capture.
-    M.state.encounter_active  = false
-    M.state.current_encounter = nil
-    M.state.auto_aura_known   = {}
 end
 
 ----------------------------------------------------------------------
@@ -539,18 +540,15 @@ local function PrintSummary()
 end
 
 local function ClearLog()
-    VoidRaidToolsDB = VoidRaidToolsDB or {}
-    VoidRaidToolsDB.diagnostics = {
-        started_at = time(),
-        recording = true,
-        etea_events = {},
-        encounter_log = {},
-        cl_log = {},
-        aura_scans = {},
-        auto_auras = {},
-        pa_test = nil,
-        api_status = nil,
-    }
+    -- Wipe IN PLACE: the reader / aura listeners from OnInit hold this
+    -- table, so replacing it orphaned their writes (and the recording flag).
+    local d = GetStore()
+    for k in pairs(d) do d[k] = nil end
+    d.started_at    = time()
+    d.recording     = true
+    d.reader_events = {}   -- listener tables OnInit created
+    d.unit_aura_log = {}
+    GetStore()             -- re-create the empty core logs
     -- Re-run startup probe so we always have current API status.
     RunStartupApiCheck()
     VRT:Print("Diagnostic log cleared. Startup API probe re-run.")
@@ -903,6 +901,7 @@ end
 local last_auto_zone = nil
 local probe_api_warned = false
 function ProbeSecretsAuto()
+    if not GetStore().recording then return end
     local cs = _G.C_Secrets
     if not cs then
         if not probe_api_warned then

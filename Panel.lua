@@ -176,6 +176,7 @@ local function BuildModuleRow(content, mod, y_cursor)
         VRT:SetModuleEnabled(mod.id, self:GetChecked() and true or false)
     end)
     cb.tooltipText = "Enable / Disable this module"
+    row.cb = cb
 
     -- Module name
     local name = row:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
@@ -280,11 +281,15 @@ end
 
 local function RefreshPanel()
     if not panel or not panel.content then return end
-    for _, r in pairs(module_rows) do
-        r:Hide()
-        r:SetParent(nil)
+    -- Rows are built once, then only their checkboxes re-synced: frames are
+    -- never garbage-collected, so rebuilding on every open leaked a full
+    -- set of rows/buttons. (All modules register at file load.)
+    if next(module_rows) then
+        for id, r in pairs(module_rows) do
+            r.cb:SetChecked(VRT:IsModuleEnabled(id))
+        end
+        return
     end
-    module_rows = {}
 
     local y = -6
     local total_height = 12

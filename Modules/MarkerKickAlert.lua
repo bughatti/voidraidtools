@@ -156,6 +156,9 @@ local function OnEvent(_, event, unit)
     elseif event == "RAID_TARGET_UPDATE"
         or event == "NAME_PLATE_UNIT_ADDED"
         or event == "NAME_PLATE_UNIT_REMOVED" then
+        -- A plate leaving range gets no cast-stop event; drop its cast so
+        -- it can't fire late (or against the next mob reusing the token).
+        if event == "NAME_PLATE_UNIT_REMOVED" then onCastEnd(unit) end
         refreshFingerprints()
     elseif event == "PLAYER_REGEN_ENABLED" then
         active_casts        = {}

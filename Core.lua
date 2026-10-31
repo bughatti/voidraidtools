@@ -105,6 +105,11 @@ end
 ----------------------------------------------------------------------
 -- Per-module enable/disable (persisted)
 ----------------------------------------------------------------------
+-- Protected frames (secure popups, or parents of them) can't be hidden in
+-- combat; a disable during combat queues them here (frame -> module id)
+-- and PLAYER_REGEN_ENABLED finishes the hide.
+local pending_hides = {}
+
 function VRT:IsModuleEnabled(id)
     VoidRaidToolsDB = VoidRaidToolsDB or {}
     VoidRaidToolsDB.modules = VoidRaidToolsDB.modules or {}
@@ -135,6 +140,8 @@ function VRT:SetModuleEnabled(id, on)
                     -- matters (in-instance check, user_hidden flag, etc.).
                     -- If the module didn't define OnEnable we just Show().
                     -- Modules that need conditional show implement OnEnable.
+                elseif InCombatLockdown() and mv.frame:IsProtected() then
+                    pending_hides[mv.frame] = id
                 else
                     mv.frame:Hide()
                 end
@@ -246,6 +253,7 @@ local edit_was_shown   = {}   -- spec.id → was the frame visible before edit?
 local edit_fanned      = {}   -- spec.id → original point, for frames fanned out in edit mode
 local edit_dragged     = {}   -- spec.id → true once dragged during this edit session
 local edit_panel              -- floating "Done" panel
+local edit_exit_pending = false  -- Done clicked in combat; exit on PLAYER_REGEN_ENABLED
 
 local function SavePositionFor(spec)
     local point, _, relPoint, x, y = spec.frame:GetPoint()
@@ -401,9 +409,11 @@ function VRT:ExitEditMode()
     if not edit_mode_active then return end
     if InCombatLockdown() then
         -- Can't hide secure frames in combat; defer exit.
+        edit_exit_pending = true
         VRT:Print("Exit deferred — in combat. Will exit when combat ends.")
         return
     end
+    edit_exit_pending = false
     edit_mode_active = false
     if edit_panel then edit_panel:Hide() end
     for _, spec in ipairs(self.movables) do
@@ -459,6 +469,8 @@ local sequence_owner = CreateFrame("Frame", "VRT_SequenceBindingOwner")
 -- Generic override application. `owner` namespaces the override so
 -- TAUNT and SEQUENCE keys can coexist without clobbering each other.
 local function ApplyOverride(owner, binding_name, btn_name)
+    -- Override bindings are protected in combat lockdown.
+    if InCombatLockdown() then return end
     local key1, key2 = GetBindingKey(binding_name)
     ClearOverrideBindings(owner)
     if not key1 or not btn_name then return end
@@ -468,7 +480,9 @@ end
 
 local function RecheckList(list, owner, binding_name)
     for _, btn in ipairs(list) do
-        if btn and btn:IsShown() then
+        -- IsVisible, not IsShown: a button whose PARENT popup was hidden
+        -- keeps its own shown flag, so IsShown would rebind to it.
+        if btn and btn:IsVisible() then
             ApplyOverride(owner, binding_name, btn:GetName())
             return
         end
@@ -594,6 +608,7 @@ frame:RegisterEvent("ENCOUNTER_END")
 frame:RegisterEvent("UNIT_AURA")
 frame:RegisterEvent("CHAT_MSG_ADDON")
 frame:RegisterEvent("ENCOUNTER_TIMELINE_EVENT_ADDED")
+frame:RegisterEvent("PLAYER_REGEN_ENABLED")
 
 frame:SetScript("OnEvent", function(_, event, a, b, c, d, e)
     if event == "ADDON_LOADED" then
@@ -634,6 +649,13 @@ frame:SetScript("OnEvent", function(_, event, a, b, c, d, e)
         DispatchAddonMessage(a, b, c, d)
     elseif event == "ENCOUNTER_TIMELINE_EVENT_ADDED" then
         DispatchTimelineEvent(a)
+    elseif event == "PLAYER_REGEN_ENABLED" then
+        -- Finish work that combat lockdown blocked.
+        for f, id in pairs(pending_hides) do
+            if not VRT:IsModuleEnabled(id) then f:Hide() end
+        end
+        wipe(pending_hides)
+        if edit_exit_pending then VRT:ExitEditMode() end
     elseif event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
         VRT:ForEachModule(function(mod)
             if not VRT:IsModuleEnabled(mod.id) then return end

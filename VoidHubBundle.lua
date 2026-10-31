@@ -14,6 +14,12 @@
 -- work regardless of which addon owns the hub this session).
 ----------------------------------------------------------------------
 
+-- Addons without a minimap button of their own (VoidBars, VoidFrames, ...)
+-- register a launcher instead, from their own code, whichever bundle copy wins:
+--   VoidHubLaunchers = VoidHubLaunchers or {}
+--   VoidHubLaunchers.VoidBars = { icon = "Interface\Icons\...", onClick = function(button) ... end }
+_G.VoidHubLaunchers = _G.VoidHubLaunchers or {}
+
 -- Election guard — only first-loaded Void* addon does the work
 if _G.__VoidHubLoaded then return end
 _G.__VoidHubLoaded = true
@@ -33,13 +39,16 @@ local KNOWN_VOID_ADDONS = {
     { name = "VoidAH",         label = "Auction House",     public = true, desc = "A full Auction House replacement with built-in profession leveling plans and shopping lists." },
     { name = "VoidAlert",      label = "Alerts",            desc = "Custom on-screen alerts for combat events." },
     { name = "VoidBags",       label = "Bags",              public = true, desc = "Smart bag organizer with auto-categorization, cross-character tracking, and one-click merchant tools." },
+    { name = "VoidBars",       label = "Action Bars",       desc = "Action bars with smart Consumables, Travel and Professions bars, profiles and layout presets." },
     { name = "VoidCalendar",   label = "Calendar",          public = true, desc = "A Void-themed calendar replacement that shows every event in your own time zone." },
     { name = "VoidCheatSheet", label = "Cheat Sheets",      public = true, desc = "In-game cheat sheets for every Midnight raid, the full Mythic+ pool, and delve bosses, auto-pops on pull." },
     { name = "VoidComp",       label = "Comp Tool",         desc = "Group composition planning and balance helper." },
     { name = "VoidDice",       label = "Dice Roller",       desc = "Standardized loot-roll rolls for raids." },
     { name = "VoidFisher",     label = "Fishing",           desc = "Fishing tracker: catches, their value and the best spots." },
+    { name = "VoidFrames",     label = "Party Frames",      desc = "Party and raid frames with click casting." },
     { name = "VoidGear",       label = "Gear Planner",      desc = "Loadout manager with stat-budget gear scoring." },
     { name = "VoidLFG",        label = "Group Finder",      desc = "Enhanced LFG dialog with party history and quality filters." },
+    { name = "VoidPlates",     label = "Nameplates",        desc = "Clean nameplates with readable enemy casts." },
     { name = "VoidProf",       label = "Professions",       desc = "Profession tracking, recipe finder, and crafting queue." },
     { name = "VoidPug",        label = "Pug Tracker",       public = true, desc = "Track pug raid lockouts automatically, never lose contact with a good pug leader." },
     { name = "VoidQuest",      label = "Quests",            desc = "Quest helper with proximity sort and step-by-step guides." },
@@ -47,7 +56,6 @@ local KNOWN_VOID_ADDONS = {
     { name = "VoidRaidToolsReader", label = "VRT Reader",   public = true, desc = "The required companion to VoidRaidTools. Records boss events so its alerts know what really happens in each fight." },
     { name = "VoidScout",      label = "Scout",             public = true, desc = "Behavior-aware player and group scoring for the Premade Groups finder." },
     { name = "VoidSequencer",  label = "Sequencer",         desc = "One-button rotation sequencer with ST/AoE switch and auto-cooldowns (Unholy DK)." },
-    { name = "VoidStealth",    label = "Stealth Bars",      desc = "Fades action bars out during combat for a clean screen. Keybinds stay live." },
     { name = "VoidTank",       label = "Tank Tools",        desc = "Tank-swap alerts and threat tracking." },
     { name = "VoidUI",         label = "UI Overhaul",       desc = "Full UI replacement with class-themed accents." },
 }
@@ -67,6 +75,8 @@ local function DiscoverVoidButtons()
         if btn and type(btn) == "table"
             and btn.GetObjectType and btn:GetObjectType() == "Button" then
             table.insert(found, { name = info.label, fullName = info.name, button = btn })
+        elseif type(VoidHubLaunchers[info.name]) == "table" then
+            table.insert(found, { name = info.label, fullName = info.name, launcher = VoidHubLaunchers[info.name] })
         end
     end
     return found
@@ -146,9 +156,9 @@ local function RefreshPopup()
         end
         item:ClearAllPoints()
         item:SetPoint("TOP", popupFrame, "TOP", 0, -(4 + (i - 1) * (slotSize + gap)))
-        item._name, item._fullName, item._addonButton = entry.name, entry.fullName, entry.button
-        local srcTexture
-        if entry.button.GetRegions then
+        item._name, item._fullName, item._addonButton, item._launcher = entry.name, entry.fullName, entry.button, entry.launcher
+        local srcTexture = entry.launcher and entry.launcher.icon
+        if entry.button and entry.button.GetRegions then
             for _, region in ipairs({ entry.button:GetRegions() }) do
                 if region.GetTexture and region:GetObjectType() == "Texture" then
                     local tex = region:GetTexture()
@@ -160,6 +170,10 @@ local function RefreshPopup()
         item:RegisterForClicks("LeftButtonUp", "RightButtonUp")
         item:SetScript("OnClick", function(self, button)
             popupFrame:Hide()
+            if self._launcher then
+                if self._launcher.onClick then self._launcher.onClick(button) end
+                return
+            end
             local script = self._addonButton:GetScript("OnClick")
             if script then script(self._addonButton, button) end
         end)

@@ -156,12 +156,21 @@ local function buildMacroText(priorities)
     -- match) + ONE /tm. We take the FIRST marker from each priority's
     -- list — multi-marker per mob-type is on hold pending a non-tainting
     -- way to mark multiple same-name mobs in one press.
-    local lines = {}
+    -- Start with no target: if the first /targetexact finds nothing, the old
+    -- target (say the tank's unmarked kill target) would otherwise get the
+    -- first priority's marker. Later lines are safe: what's targeted then was
+    -- just marked (or skipped as friendly/dead), and "~N" skips marked units.
+    -- /targetlasttarget at the end still brings the original target back.
+    local lines = { "/cleartarget" }
     for _, p in ipairs(priorities) do
         local marker = (p.markers and p.markers[1]) or p.marker
         if marker then
             lines[#lines + 1] = buildFinderLine(p.name)
-            lines[#lines + 1] = "/tm " .. tostring(marker)
+            -- "~N" skips a target that already carries ANY marker (plain
+            -- "/tm N" toggled our own marks off and overwrote others when
+            -- /targetexact found nothing and kept the old target);
+            -- [harm,nodead] keeps it off friendly / dead targets.
+            lines[#lines + 1] = "/tm [harm,nodead] ~" .. tostring(marker)
         end
     end
     lines[#lines + 1] = "/targetlasttarget"
@@ -224,7 +233,8 @@ SlashCmdList["VRTMARK"] = function(arg)
         if pri then
             print("  Loaded priorities for " .. current_dungeon .. ":")
             for _, p in ipairs(pri) do
-                print(("    %s -> %s"):format(p.name, MARKER_NAMES[p.marker] or ("idx " .. p.marker)))
+                local mk = (p.markers and p.markers[1]) or p.marker
+                print(("    %s -> %s"):format(p.name, MARKER_NAMES[mk] or ("idx " .. tostring(mk))))
             end
         else
             print("  No priorities for this zone yet.")

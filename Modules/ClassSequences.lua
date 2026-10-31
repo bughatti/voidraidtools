@@ -10,17 +10,14 @@
 -- so it can coexist with TAUNT (you might be tanking + needing to grip
 -- in the same fight).
 --
--- Smart targeting via PreClick:
---   SecureActionButtons fire PreClick BEFORE the secure cast. PreClick
---   can call TargetUnit on a nameplate unit (allowed for player-
---   initiated targeting in combat). So we can auto-pick the right
---   essence on each click without the user tab-targeting.
+-- No auto-targeting: TargetUnit is protected (blocked from addon
+-- PreClick code) and nameplateN can't be targeted in 12.x. The player
+-- tab-targets each essence; the secure /castsequence casts on target.
 --
 -- Sequence position tracking:
 --   /castsequence is opaque to Lua — we can't read its position. So we
 --   track our OWN click counter, reset on combat end / 15s of click
---   inactivity. Used to switch targeting strategy between grip-clicks
---   (1-2) and interrupt-click (3).
+--   inactivity.
 ----------------------------------------------------------------------
 
 local M = {
@@ -35,7 +32,7 @@ local M = {
 
 M.id          = "classsequences"
 M.name        = "Class Sequences"
-M.description = "Death Knight only — Grip / Grip / Kick castsequence popup for Chimaerus Haunting Essences. One keybind launches the 3-step sequence and auto-targets the next un-gripped add each press. DBM announces the cast; this DOES it."
+M.description = "Death Knight only — Grip / Grip / Kick castsequence popup for Chimaerus Haunting Essences. One keybind steps through the 3-step sequence on your current target. DBM announces the cast; this DOES it."
 
 ----------------------------------------------------------------------
 -- Constants
@@ -108,60 +105,6 @@ local function SpecMatches(cfg)
 end
 
 ----------------------------------------------------------------------
--- Nameplate scanning (PreClick targeting)
-----------------------------------------------------------------------
-local function NameplateMatchesKeywords(name, keywords)
-    if not name then return false end
-    for _, kw in ipairs(keywords) do
-        if name:find(kw, 1, true) then return true end
-    end
-    return false
-end
-
--- 12.0.5: UnitName/UnitGUID on hostile nameplates in instances can be
--- secret-tainted, and the taint propagates into the addon scope as soon
--- as a tainted value flows into a comparison or table key. Since this
--- function is called from inside a SecureActionButton's PreClick handler,
--- ANY taint here breaks every secure button in the addon. Guard each
--- field with issecretvalue BEFORE touching it.
-local function SafeNameplateFields(unit)
-    local name = UnitName(unit)
-    if issecretvalue and issecretvalue(name) then name = nil end
-    if not name then return nil, nil end
-    local guid = UnitGUID(unit)
-    if issecretvalue and issecretvalue(guid) then guid = nil end
-    return name, guid
-end
-
-local function FindGripTarget(cfg)
-    -- Pick the first nameplate matching keywords whose GUID is not yet
-    -- in gripped_guids. This rotates through fresh essences.
-    if not (UnitExists and UnitName and UnitGUID and UnitCanAttack) then return nil end
-    for i = 1, 40 do
-        local unit = "nameplate" .. i
-        if UnitExists(unit) and UnitCanAttack("player", unit) then
-            local name, guid = SafeNameplateFields(unit)
-            if name and NameplateMatchesKeywords(name, cfg.target_keywords) then
-                if guid and not M.state.gripped_guids[guid] then
-                    return unit, guid, name
-                end
-            end
-        end
-    end
-    -- Fallback: first matching nameplate even if previously targeted
-    for i = 1, 40 do
-        local unit = "nameplate" .. i
-        if UnitExists(unit) and UnitCanAttack("player", unit) then
-            local name, guid = SafeNameplateFields(unit)
-            if name and NameplateMatchesKeywords(name, cfg.target_keywords) then
-                return unit, guid, name
-            end
-        end
-    end
-    return nil
-end
-
-----------------------------------------------------------------------
 -- The popup (one shared frame, retargets via PreClick per config)
 ----------------------------------------------------------------------
 local popup_frame
@@ -185,23 +128,10 @@ local function PreClickHandler(self)
     M.state.click_count = M.state.click_count + 1
     M.state.last_click_time = now
 
-    -- For all clicks: target the next un-gripped matching nameplate.
-    -- For the interrupt step (click 3), targeting a "casting" mob would
-    -- be ideal — but UnitCastingInfo on hostile nameplates is secret-
-    -- tainted in 12.0.5 and reading it inside a SecureActionButton
-    -- PreClick handler propagates taint that breaks every secure button
-    -- in the addon. The fallback is good enough: any matching nameplate
-    -- is targeted, the secure /castsequence fires Mind Freeze on it. If
-    -- the player wants a specific caster, they tab-target before the
-    -- click — that overrides our PreClick targeting cleanly.
-    local target_unit, target_guid, target_name = FindGripTarget(cfg)
-
-    if target_unit then
-        TargetUnit(target_unit)
-        if target_guid and M.state.click_count < cfg.interrupt_step then
-            M.state.gripped_guids[target_guid] = true
-        end
-    end
+    -- No auto-targeting: TargetUnit is protected and this hooked PreClick
+    -- runs as insecure addon code, so the call is blocked
+    -- (ADDON_ACTION_BLOCKED). nameplateN can't be targeted in 12.x at all.
+    -- The player tab-targets; the secure /castsequence fires on target.
 end
 
 local function BuildSequencePopup()
@@ -298,6 +228,7 @@ local function ArmConfig(cfg)
     popup_frame.sub:SetText(cfg.sub_label or cfg.encounter_name or "")
     secure_button.lbl:SetText(cfg.label)
     popup_frame:Show()
+    return true
 end
 
 local function DisarmConfig()
@@ -318,7 +249,12 @@ end
 function M:OnEncounterStart(encounterID)
     local cfg = FindMatchingConfig(encounterID)
     if not cfg then return end
-    ArmConfig(cfg)
+    if not ArmConfig(cfg) then
+        -- SetAttribute/Show on the secure popup are blocked in combat.
+        VRT:Print(("Sequence NOT armed: %s (%s) — encounter started in combat."):format(
+            cfg.label, cfg.encounter_name))
+        return
+    end
     VRT:Print(("Sequence armed: %s (%s) — bind VOIDRAIDTOOLS_SEQUENCE in Key Bindings."):format(
         cfg.label, cfg.encounter_name))
 end
