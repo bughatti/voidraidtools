@@ -1,5 +1,10 @@
 # VoidRaidTools Changelog
 
+## [1.1.3] — 2026-11-02
+
+### Changed
+- **Void hub icon:** your Void addons now pop out in rings around the hub icon, fanning away from the minimap, instead of one long column. The pop-up also works while another addon moves or fades the minimap.
+
 ## [1.1.2] — 2026-11-01
 
 ### Changed
