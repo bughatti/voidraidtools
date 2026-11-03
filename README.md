@@ -78,6 +78,7 @@ Boss modules currently cover the **Season 1 raids**. Season 2 (**The Venomous Ab
 
 ## Good to Know
 
+- **Settings are per character.** Each character keeps its own VoidRaidTools settings, and a new character starts with the settings of the one you played last, so nothing resets when you update. Right-click the Void hub icon by your minimap and pick **Copy settings from...** to take another character's settings for one Void addon or all of them. That covers which modules are on and their options. Frame positions stay shared.
 - **Why the Reader is required:** VoidRaidToolsReader records boss events so the cross-class alerts have the data they need. It asks for your consent on first login, and local-only mode keeps everything on your computer.
 - Contributing that data to the shared model is optional and uses the small companion app at [voidscout.io/install](https://voidscout.io/install).
 

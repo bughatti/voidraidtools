@@ -34,6 +34,10 @@
 ----------------------------------------------------------------------
 
 local ADDON_NAME   = ...
+
+-- Settings are per character (CharSettings.lua): which modules are on and
+-- their options. Frame positions (movables, Lura's) and diagnostics stay shared.
+select(2, ...).CharSettings.Register(ADDON_NAME, "VoidRaidToolsDB", { "modules", "settings" }, { "settings.lura" })
 local ADDON_PREFIX = "VRT"
 local SLASH_LONG   = "voidraidtools"
 

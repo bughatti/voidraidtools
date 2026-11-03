@@ -1,5 +1,13 @@
 # VoidRaidTools Changelog
 
+## [1.1.4] — 2026-11-02
+
+### Changed
+- **Settings are per character.** Each character keeps its own VoidRaidTools settings, and a new character starts with the settings of the one you played last, so nothing resets when you update. Right-click the Void hub icon by your minimap and pick **Copy settings from...** to take another character's settings for one Void addon or all of them. That covers which modules are on and their options. Frame positions stay shared.
+
+### Fixed
+- **Void hub:** its position on your minimap is saved per character again, like in the other Void addons.
+
 ## [1.1.3] — 2026-11-02
 
 ### Changed
