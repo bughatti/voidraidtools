@@ -254,18 +254,13 @@ local ALERT_DURATION = 4
 --     covered (or marked "no required interrupts"). critical=true → CRIT.
 --  2. Local combat-log mining — fills in trash + raid adds that the JES
 --     doesn't cover. Ratio: 50%+ interrupted = HIGH, <25% = ignored.
---  3. WCL community data — cross-checks raid casts against top-10 logs
---     per encounter. Confirmed 1284934 / 1243852 / 1243854 (Belo'ren +
---     Midnight Falls). M+ WCL endpoint returns HTTP 400, so M+ relies on
---     pipelines 1 and 2.
---
--- Re-run pipelines:
---   wow-addons/voidscout-data/interrupt_priority_analysis.py [N]
---   wow-addons/voidscout-data/wcl_interrupt_aggregator.py --top 10
+--  3. Top-10 raid kill logs per encounter — cross-checks raid casts.
+--     Confirmed 1284934 / 1243852 / 1243854 (Belo'ren + Midnight Falls).
+--     M+ relies on pipelines 1 and 2.
 --
 -- Bosses with zero priority casts (Vorasius, Vaelgor & Ezzorak, Crown of
 -- the Cosmos lowest casts) are positional/avoidance fights — verified by
--- both DBC and WCL community kick rate < 25%. Not a coverage gap.
+-- both DBC and the top logs' kick rate < 25%. Not a coverage gap.
 ----------------------------------------------------------------------
 local PRIORITY_INTERRUPTS = {
     -- RAID: Dreamrift
@@ -278,8 +273,8 @@ local PRIORITY_INTERRUPTS = {
     -- RAID: March on Quel'Danas
     [1243852] = { name = "Light Eruption",      priority = "CRITICAL" },  -- Belo'ren, Child of Al'ar
     [1282412] = { name = "Core Harvest",        priority = "CRITICAL" },  -- Midnight Falls
-    [1284934] = { name = "Midnight Phase",      priority = "CRITICAL" },  -- Midnight Falls/L'ura (WCL 100%)
-    [1243854] = { name = "Void Eruption",       priority = "HIGH" },      -- Belo'ren (WCL 72%)
+    [1284934] = { name = "Midnight Phase",      priority = "CRITICAL" },  -- Midnight Falls/L'ura (kicked 100%)
+    [1243854] = { name = "Void Eruption",       priority = "HIGH" },      -- Belo'ren (kicked 72%)
 
     -- RAID: Voidspire
     [1260000] = { name = "Void Barrage",        priority = "CRITICAL" },  -- Crown of the Cosmos

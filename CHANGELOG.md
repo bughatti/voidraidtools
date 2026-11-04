@@ -1,5 +1,10 @@
 # VoidRaidTools Changelog
 
+## [1.1.5] — 2026-11-03
+
+### Changed
+- Wording cleanup in code comments. No change in game.
+
 ## [1.1.4] — 2026-11-02
 
 ### Changed

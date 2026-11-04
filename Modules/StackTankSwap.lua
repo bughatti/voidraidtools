@@ -28,7 +28,7 @@
 -- DBM does exactly this pattern for their Private Aura sound options.
 --
 -- Spell IDs source:
---   Pulled from public WarcraftLogs Voidspire kill data 2026-06-05.
+--   Pulled from public Voidspire kill logs 2026-06-05.
 --   Reapplication counts (66 + 76) confirm per-melee-swing stacking.
 ----------------------------------------------------------------------
 
@@ -68,10 +68,10 @@ local STACK_SWAP_CONFIGS = {
         encounter_id      = 3176,
         display           = "Imperator Averzian",
         debuff_name       = "Blackening Wounds",
-        debuff_spell_id   = 1265540,    -- verified via WCL 2026-06-05
+        debuff_spell_id   = 1265540,    -- verified in kill logs 2026-06-05
         sound_file        = "Sound\\Interface\\AlarmClockWarning1.ogg",
         threshold         = 8,
-        per_stack_seconds = 2.41,       -- median melee-swing gap from WCL (2026-06-05)
+        per_stack_seconds = 2.41,       -- median melee-swing gap in kill logs (2026-06-05)
         boss_unit         = "boss1",
         color             = "ff8c40",
         request_cooldown_seconds = 8,
@@ -81,10 +81,10 @@ local STACK_SWAP_CONFIGS = {
         encounter_id      = 3179,
         display           = "Fallen-King Salhadaar",
         debuff_name       = "Destabilizing Strikes",
-        debuff_spell_id   = 1271579,    -- verified via WCL 2026-06-05
+        debuff_spell_id   = 1271579,    -- verified in kill logs 2026-06-05
         sound_file        = "Sound\\Interface\\AlarmClockWarning2.ogg",
         threshold         = 8,
-        per_stack_seconds = 2.11,       -- median melee-swing gap from WCL (2026-06-05)
+        per_stack_seconds = 2.11,       -- median melee-swing gap in kill logs (2026-06-05)
         boss_unit         = "boss1",
         color             = "8c40ff",
         request_cooldown_seconds = 8,
