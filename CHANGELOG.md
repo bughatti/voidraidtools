@@ -1,5 +1,11 @@
 # VoidRaidTools Changelog
 
+## [1.1.6] — 2026-11-05
+
+### Fixed
+- **Marker overlay shows each mob's real raid marker** (star, circle, X...). With two or more marked mobs, every one showed a skull.
+- The L'ura helper's **Be Oracle** button is wide enough for its text.
+
 ## [1.1.5] — 2026-11-03
 
 ### Changed

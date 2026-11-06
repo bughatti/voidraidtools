@@ -425,6 +425,7 @@ local function BuildLegendFrame()
     claim:SetSize(64, 16)
     claim:SetPoint("TOP", f.status, "BOTTOM", 0, -2)
     claim:SetText("Be Oracle")
+    claim:SetWidth(math.max(claim:GetWidth(), math.ceil(claim:GetFontString():GetStringWidth()) + 16))   -- text fits its button
     claim:SetScript("OnClick", function()
         if M.state.is_oracle then
             ReleaseOracle()
@@ -799,6 +800,7 @@ local function BuildPlayerFrame()
     claim:SetSize(72, 18)
     claim:SetPoint("TOPRIGHT", -4, -4)
     claim:SetText("Be Oracle")
+    claim:SetWidth(math.max(claim:GetWidth(), math.ceil(claim:GetFontString():GetStringWidth()) + 16))   -- text fits its button
     claim:SetScript("OnClick", function()
         if M.state.is_oracle then
             ReleaseOracle()

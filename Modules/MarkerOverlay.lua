@@ -9,9 +9,9 @@
 -- Why not just scale the built-in marker icon?
 --   We can detect THAT a mob is marked (clean: type() trick) but we
 --   CANNOT read WHICH marker it has (the index is secret-tainted in
---   12.0.5 instances). So we render ONE generic icon that means
---   "the kick rotation cares about this mob" — same visual regardless
---   of whether it's skull, X, or square underneath.
+--   12.0.5 instances). We don't need to: the index goes straight into
+--   SetSpriteSheetCell, which accepts secrets, so the overlay shows the
+--   mob's real marker (skull, X, square...). Skull only as a fallback.
 --
 -- Design:
 --   - One overlay per nameplate, pooled and reused.
@@ -28,7 +28,8 @@ local M = {
 }
 
 -- Visual config (tweakable later)
-local ICON_TEXTURE = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_8"  -- skull
+local ICON_TEXTURE = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_8"  -- skull (fallback only)
+local MARKER_SHEET = "Interface\\TargetingFrame\\UI-RaidTargetingIcons"   -- 4x4 sheet, cell = marker index
 local ICON_SIZE    = 56          -- pixels (default raid target = ~16)
 local OFFSET_Y     = 18          -- pixels above the nameplate top
 local PULSE_PERIOD = 0.8         -- seconds per pulse
@@ -139,6 +140,17 @@ local function refreshFor(unit)
     local overlay = getOverlay(unit)
     if not overlay then return end
     if UnitExists(unit) and UnitCanAttack("player", unit) and isPriority(unit) then
+        -- Show the mob's real marker. The index may be secret, but it can go straight
+        -- into SetSpriteSheetCell on the marker sheet (takes secrets; Blizzard's own
+        -- SetRaidTargetIconTexture and VoidPlates do the same). The old fixed skull made
+        -- every marked mob look like skull with 2+ marked (WoW Forever, 2026-11-05).
+        -- If the call is refused, fall back to the skull.
+        local tex = overlay.tex
+        tex:SetTexture(MARKER_SHEET)
+        if not pcall(tex.SetSpriteSheetCell, tex, GetRaidTargetIndex(unit), 4, 4) then
+            tex:SetTexture(ICON_TEXTURE)
+            tex:SetTexCoord(0, 1, 0, 1)
+        end
         overlay:Show()
         overlay.ag:Play()
     else
