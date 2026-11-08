@@ -183,12 +183,19 @@ end
 local sab
 
 local function ensureSAB()
-    if sab then return sab end
-    sab = CreateFrame("Button", "VRT_MarkerScanButton", UIParent,
-                      "SecureActionButtonTemplate")
-    sab:RegisterForClicks("AnyDown", "AnyUp")
-    sab:SetAttribute("type", "macro")
-    sab:SetAttribute("macrotext", "/targetlasttarget")  -- safe default
+    if not sab then
+        sab = CreateFrame("Button", "VRT_MarkerScanButton", UIParent,
+                          "SecureActionButtonTemplate")
+    end
+    -- Setup is blocked under combat lockdown, and a /reload mid-fight loads us under it
+    -- (2026-11-07): then it happens on the next call out of combat (refreshMacrotext,
+    -- which also runs when combat ends).
+    if not sab.vrtReady and not InCombatLockdown() then
+        sab:RegisterForClicks("AnyDown", "AnyUp")
+        sab:SetAttribute("type", "macro")
+        sab:SetAttribute("macrotext", "/targetlasttarget")  -- safe default
+        sab.vrtReady = true
+    end
     return sab
 end
 

@@ -1,5 +1,9 @@
 # VoidRaidTools Changelog
 
+## [1.1.7] — 2026-11-07
+
+- **Fixed: marker scan after a /reload mid-fight.** Its button is now set up once combat ends instead of being blocked.
+
 ## [1.1.6] — 2026-11-05
 
 ### Fixed
