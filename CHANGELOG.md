@@ -1,5 +1,9 @@
 # VoidRaidTools Changelog
 
+## [1.1.8] — 2026-11-09
+
+- **Fixed: box borders missing a side.** Depending on where a window sat on screen, its left, right or bottom line could vanish. Borders are now exactly one screen pixel and can't round away.
+
 ## [1.1.7] — 2026-11-07
 
 - **Fixed: marker scan after a /reload mid-fight.** Its button is now set up once combat ends instead of being blocked.
