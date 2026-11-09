@@ -1,5 +1,7 @@
 # VoidRaidTools
 
+**Works on:** WoW Midnight only
+
 **A complement to DBM and BigWigs — it handles the parts they leave to you.**
 
 DBM and BigWigs announce what the boss is about to do. VoidRaidTools doesn't repeat those alerts — it tells *you* what to do about them, and only the things you can actually act on: **DPS** see kicks and soak assignments, **healers** see dispels and external-cooldown requests, **tanks** see swap callouts with a one-click TAUNT button. It filters by your spec automatically — no setup.
@@ -86,7 +88,7 @@ Boss modules currently cover the **Season 1 raids**. Season 2 (**The Venomous Ab
 
 ## Compatibility
 
-- **WoW 12.1.5** (Midnight Season 2)
+- **WoW Midnight** 12.1.5 (Season 2) only
 - Requires **VoidRaidToolsReader**
 - Designed to run alongside DBM or BigWigs
 
