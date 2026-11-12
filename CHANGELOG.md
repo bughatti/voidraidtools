@@ -1,5 +1,11 @@
 # VoidRaidTools Changelog
 
+## [1.1.9] — 2026-11-12
+
+- **The note editor can be dragged and stays where you put it**, even after a restart.
+- Windows can no longer be dragged off the screen.
+- **Void hub button:** left-click opens one panel with all your Void addons by name, grouped, each with its own on/off switches (it replaces the ring of icons), with a background slider. The hub's info window now stays where you put it.
+
 ## [1.1.8] — 2026-11-09
 
 - **Fixed: box borders missing a side.** Depending on where a window sat on screen, its left, right or bottom line could vanish. Borders are now exactly one screen pixel and can't round away.

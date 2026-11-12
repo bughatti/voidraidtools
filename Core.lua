@@ -33,6 +33,7 @@
 --   Example: "lura|FLASH|triangle,star,square,diamond,circle"
 ----------------------------------------------------------------------
 
+local _, ns = ...   -- ns.Move (VoidMove.lua)
 local ADDON_NAME   = ...
 
 -- Settings are per character (CharSettings.lua): which modules are on and
@@ -284,6 +285,8 @@ function VRT:RegisterMovable(spec)
                             saved.x or 0, saved.y or 0)
     end
     spec.frame:SetMovable(true)
+    -- never dragged (or restored) off the screen (found 11-12: no VRT box was clamped)
+    if not (InCombatLockdown() and spec.frame:IsProtected()) then spec.frame:SetClampedToScreen(true) end
 
     -- For non-secure frames, attach native drag scripts so the user can
     -- reposition them any time without /vrt edit. SecureActionButton
@@ -346,6 +349,7 @@ local function BuildEditPanel()
     p:RegisterForDrag("LeftButton")
     p:SetScript("OnDragStart", p.StartMoving)
     p:SetScript("OnDragStop", p.StopMovingOrSizing)
+    ns.Move(p, { db = function() return VoidRaidToolsDB end, key = "editPanel" })   -- drag + kept after a restart (VoidMove.lua)
     p:SetBackdrop({
         bgFile   = "Interface\\Buttons\\WHITE8X8",
         edgeFile = "Interface\\Buttons\\WHITE8X8",
