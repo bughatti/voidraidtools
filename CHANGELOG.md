@@ -1,5 +1,9 @@
 # VoidRaidTools Changelog
 
+## [1.1.10] — 2026-11-12
+
+- **Fixed: a side of a box could be missing**, e.g. the right line of the recipes box and its buttons when the game window is an odd number of pixels wide. Every Void box now always shows all four border lines.
+
 ## [1.1.9] — 2026-11-12
 
 - **The note editor can be dragged and stays where you put it**, even after a restart.

@@ -38,14 +38,16 @@
 -- piece to the pixel grid, and a thin line on a fractional position can snap to 0 px: a side
 -- of a box vanishes. VoidPX() asks for one real pixel, and the hook below (installed once, by
 -- the first Void addon loaded) turns snapping off on the edges of flat WHITE8X8 borders, like
--- Blizzard's NineSliceUtil.DisableSharpening, so a 1 px line always covers a pixel.
+-- Blizzard's NineSliceUtil.DisableSharpening, so a 1 px line always covers a pixel. It also
+-- moves the border 1/8 px up-left: a side sitting exactly on a pixel's middle (a box centred
+-- in an odd-width window) covered no pixel and vanished (2026-11-12).
 local function VoidPX()
     local s = UIParent and UIParent:GetEffectiveScale()
     if s and s > 0 and PixelUtil and PixelUtil.GetPixelToUIUnitFactor then return PixelUtil.GetPixelToUIUnitFactor() / s end
     return 1
 end
-if not _G.__VoidBorderHook and hooksecurefunc and NineSliceUtil and NineSliceUtil.ApplyLayout then
-    _G.__VoidBorderHook = true
+if not _G.__VoidBorderHook2 and hooksecurefunc and NineSliceUtil and NineSliceUtil.ApplyLayout then
+    _G.__VoidBorderHook2 = true
     local EDGES = { "TopEdge", "BottomEdge", "LeftEdge", "RightEdge",
                     "TopLeftCorner", "TopRightCorner", "BottomLeftCorner", "BottomRightCorner" }
     hooksecurefunc(NineSliceUtil, "ApplyLayout", function(c)
@@ -57,6 +59,20 @@ if not _G.__VoidBorderHook and hooksecurefunc and NineSliceUtil and NineSliceUti
             if t and t.SetSnapToPixelGrid then
                 t:SetSnapToPixelGrid(false)
                 t:SetTexelSnappingBias(0)
+            end
+        end
+        -- the corners hold the box's own points; the edges and the background hang off them
+        local sc = c.GetEffectiveScale and c:GetEffectiveScale()
+        if not (sc and sc > 0 and PixelUtil and PixelUtil.GetPixelToUIUnitFactor) then return end
+        local d = PixelUtil.GetPixelToUIUnitFactor() / sc / 8
+        for n = 5, 8 do
+            local t = c[EDGES[n]]
+            if t and t.GetNumPoints and t:GetNumPoints() == 1 then
+                local p, rel, rp, x, y = t:GetPoint(1)
+                if rel == c then
+                    t:ClearAllPoints()
+                    t:SetPoint(p, c, rp, (x or 0) - d, (y or 0) + d)
+                end
             end
         end
     end)
